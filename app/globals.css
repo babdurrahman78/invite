@@ -18,10 +18,40 @@
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
+  background: linear-gradient(to bottom,
       transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+      rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+}
+
+/* CameraMicrophone.css */
+
+.camera-microphone-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.button-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.toggle-button {
+  background-color: #3498db;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.toggle-button.active {
+  background-color: #e74c3c;
+}
+
+video {
+  width: 100%;
+  max-width: 100%;
+  margin-top: 20px;
 }
