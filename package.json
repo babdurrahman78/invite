@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.6",
+    "@ffmpeg/util": "^0.12.1",
     "audio-recorder-polyfill": "^0.4.1",
     "bufferutil": "^4.0.7",
     "microsoft-cognitiveservices-speech-sdk": "^1.32.0",

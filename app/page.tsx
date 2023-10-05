@@ -2,10 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
-
-
-
-
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile } from '@ffmpeg/util';
 
 export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -19,6 +17,9 @@ export default function Home() {
   const [recordedAudio, setRecordedAudio] = useState<any>()
   const [transcribedAudio, setTranscribedAudio] = useState<string | null>(null);
 
+  const { writeFile, exec, readFile, load } = new FFmpeg
+
+
   const toggleCamera = () => {
     setCameraOn(!cameraOn);
   };
@@ -26,6 +27,20 @@ export default function Home() {
   const toggleMicrophone = () => {
     setMicrophoneOn(!microphoneOn);
   };
+
+  const convertToWav = async (file: File) => {
+
+    await load();
+
+    wr('writeFile', 'input.webm', await fetchFile(file));
+
+    await ffmpeg.run('-i', 'input.webm', 'output.wav');
+
+    const wavData = ffmpeg.FS('readFile', 'output.wav');
+    const wavBlob = new Blob([wavData.buffer], { type: 'audio/wav' });
+    setOutputFile(wavBlob);
+  };
+
 
   const toggleRecording = () => {
     if (recording) {
