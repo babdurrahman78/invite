@@ -4,6 +4,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
 
 
+
+
+
 export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -15,7 +18,6 @@ export default function Home() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [recordedAudio, setRecordedAudio] = useState<any>()
   const [transcribedAudio, setTranscribedAudio] = useState<string | null>(null);
-
 
   const toggleCamera = () => {
     setCameraOn(!cameraOn);
@@ -30,8 +32,8 @@ export default function Home() {
       mediaRecorder?.stop();
     } else {
       const constraints: MediaStreamConstraints = {
-        video: cameraOn,
-        audio: microphoneOn,
+        video: false,
+        audio: true
       };
 
       navigator.mediaDevices
@@ -40,6 +42,7 @@ export default function Home() {
           const recorder = new MediaRecorder(stream);
           setMediaRecorder(recorder);
 
+
           const chunks: Blob[] = [];
           recorder.ondataavailable = (event) => {
             if (event.data.size > 0) {
@@ -47,18 +50,109 @@ export default function Home() {
             }
           };
 
-          recorder.onstop = () => {
-            const audio = new Audio();
+          recorder.onstop = async () => {
+            // const audio = new Audio();
             const blob = new Blob(chunks, { type: 'audio/wav' });
-            // const url = URL.createObjectURL(blob);
-            audio.src = window.URL.createObjectURL(blob);
+
+
+            // Create arrayBuffer
+            // const buf = await blob.arrayBuffer()
+
+            // const sampleRate = readSampleRate(buf);
+            // const bitsPerSample = readBitDepth(buf);
+
+            // Define or retrieve new header parameters
+            const sampleRate = 16000; // Sample rate in Hz
+            const bitsPerSample = 16; // Bits per sample
+            const numChannels = 1; // Mono
+            const dataSize = blob.size
+
+            // Calculate the size of the existing header
+            const headerSize = 44; // Size of the standard WAV header
+
+            // Calculate the byte rate (bytes per second)
+            const byteRate = (sampleRate * numChannels * bitsPerSample) / 8;
+
+            // Calculate the total size of the new buffer (header + audio data)
+            const totalSize = headerSize + dataSize; // 44 is the size of the RIFF header
+
+            // Create a new buffer to hold the combined data
+            const newBuffer = new ArrayBuffer(totalSize);
+            const view = new DataView(newBuffer);
+
+            // Write the RIFF header (first 4 bytes)
+            view.setUint8(0, 'R'.charCodeAt(0));
+            view.setUint8(1, 'I'.charCodeAt(0));
+            view.setUint8(2, 'F'.charCodeAt(0));
+            view.setUint8(3, 'F'.charCodeAt(0));
+
+            // Write the file size (totalSize - 8) as a little-endian 32-bit integer
+            view.setUint32(4, totalSize - 8, true);
+
+            // Write the "WAVE" chunk marker (8 bytes)
+            view.setUint8(8, 'W'.charCodeAt(0));
+            view.setUint8(9, 'A'.charCodeAt(0));
+            view.setUint8(10, 'V'.charCodeAt(0));
+            view.setUint8(11, 'E'.charCodeAt(0));
+            view.setUint8(12, 'f'.charCodeAt(0));
+            view.setUint8(13, 'm'.charCodeAt(0));
+            view.setUint8(14, 't'.charCodeAt(0));
+            view.setUint8(15, ' '.charCodeAt(0));
+
+            // Write the size of the "fmt " subchunk (16 for PCM)
+            view.setUint32(16, 16, true);
+
+            // Write the audio format (1 for PCM)
+            view.setUint16(20, 1, true);
+
+            // Write the number of channels (1 for mono)
+            view.setUint16(22, numChannels, true);
+
+            // Write the sample rate
+            view.setUint32(24, sampleRate, true);
+
+            // Write the byte rate
+            view.setUint32(28, byteRate, true);
+
+            // Write the block alignment (number of bytes per sample)
+            view.setUint16(32, (numChannels * bitsPerSample) / 8, true);
+
+            // Write the bits per sample
+            view.setUint16(34, bitsPerSample, true);
+
+            // Write the "data" subchunk marker (36-39)
+            view.setUint8(36, 'd'.charCodeAt(0));
+            view.setUint8(37, 'a'.charCodeAt(0));
+            view.setUint8(38, 't'.charCodeAt(0));
+            view.setUint8(39, 'a'.charCodeAt(0));
+
+            // Write the size of the audio data
+            view.setUint32(40, dataSize, true);
+
+            // Copy the existing audio data to the new buffer after the header
+            const audioDataView = new DataView(await blob.arrayBuffer());
+            for (let i = 0; i < dataSize; i++) {
+              view.setUint8(headerSize + i, audioDataView.getUint8(i));
+            }
+
+            console.log(audioDataView)
+            console.log(view)
+
+            // Once you've written the header and audio data, you can create a Blob
+            const modifiedBlob = new Blob([newBuffer], { type: 'audio/wav' });
+
+            const wavFile = new File([modifiedBlob], 'testing.wav', { type: 'audio/wav' })
+
+            const blobUrl = URL.createObjectURL(wavFile);
+
+            // Create a download link.
             const downloadLink = document.createElement('a');
-            downloadLink.href = window.URL.createObjectURL(blob);; // Use the same audio URL
-            downloadLink.download = 'audio.wav'; // Specify the filename
-            console.log('test')
+            downloadLink.href = blobUrl;
+            downloadLink.download = 'test.wav';
+
             downloadLink.click()
-            // setAudioUrl(url);
-            setRecordedAudio(blob)
+            const transcription = await transcribeAudio(wavFile)
+            console.log(transcription)
             // setRecordedChunks(blob); // Set recorded audio in state
           };
 
@@ -105,21 +199,23 @@ export default function Home() {
 
   async function transcribeAudio(audioFile: File): Promise<string> {
     return new Promise((resolve, reject) => {
+      console.log(audioFile)
       const audioConfig = sdk.AudioConfig.fromWavFileInput(audioFile);
-
+      console.log(audioConfig)
       const speechConfig = sdk.SpeechConfig.fromSubscription(
         azureSubscriptionKey,
         azureServiceRegion
       );
 
       const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
-
       recognizer.recognizeOnceAsync((result) => {
+        console.log(result)
         if (result.reason === sdk.ResultReason.RecognizedSpeech) {
           const transcription = result.text;
+          console.log(transcription)
           resolve(transcription);
         } else {
-          reject('Speech recognition failed');
+          reject('failed');
         }
       });
     });
@@ -133,7 +229,6 @@ export default function Home() {
     } catch (error) {
       console.error('Error transcribing audio:', error);
     }
-    console.log('test')
   };
 
   useEffect(() => {
@@ -163,7 +258,7 @@ export default function Home() {
         <button className={`toggle-button ${recording ? 'active' : ''}`} onClick={toggleRecording}>
           {recording ? 'Stop Recording' : 'Start Recording'}
         </button>
-        <button className="toggle-button" onClick={handleTranscription} disabled={!recordedAudio}>
+        <button className="toggle-button" onClick={handleTranscription}>
           Transcribe Audio
         </button>
       </div>
