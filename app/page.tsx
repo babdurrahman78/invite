@@ -28,19 +28,6 @@ export default function Home() {
     setMicrophoneOn(!microphoneOn);
   };
 
-  const convertToWav = async (file: File) => {
-
-    await load();
-
-    wr('writeFile', 'input.webm', await fetchFile(file));
-
-    await ffmpeg.run('-i', 'input.webm', 'output.wav');
-
-    const wavData = ffmpeg.FS('readFile', 'output.wav');
-    const wavBlob = new Blob([wavData.buffer], { type: 'audio/wav' });
-    setOutputFile(wavBlob);
-  };
-
 
   const toggleRecording = () => {
     if (recording) {
@@ -71,13 +58,13 @@ export default function Home() {
 
 
             // Create arrayBuffer
-            // const buf = await blob.arrayBuffer()
+            const buf = await blob.arrayBuffer()
 
             // const sampleRate = readSampleRate(buf);
             // const bitsPerSample = readBitDepth(buf);
 
             // Define or retrieve new header parameters
-            const sampleRate = 16000; // Sample rate in Hz
+            const sampleRate = 8000; // Sample rate in Hz
             const bitsPerSample = 16; // Bits per sample
             const numChannels = 1; // Mono
             const dataSize = blob.size
@@ -92,69 +79,100 @@ export default function Home() {
             const totalSize = headerSize + dataSize; // 44 is the size of the RIFF header
 
             // Create a new buffer to hold the combined data
-            const newBuffer = new ArrayBuffer(totalSize);
-            const view = new DataView(newBuffer);
+            // const newBuffer = new ArrayBuffer(totalSize);
+            // const view = new DataView(newBuffer);
 
-            // Write the RIFF header (first 4 bytes)
-            view.setUint8(0, 'R'.charCodeAt(0));
-            view.setUint8(1, 'I'.charCodeAt(0));
-            view.setUint8(2, 'F'.charCodeAt(0));
-            view.setUint8(3, 'F'.charCodeAt(0));
+            const headerBuffer = Buffer.alloc(44);
 
-            // Write the file size (totalSize - 8) as a little-endian 32-bit integer
-            view.setUint32(4, totalSize - 8, true);
+            // Chunk ID (RIFF identifier)
+            headerBuffer.write('RIFF', 0);
+            // File size (total file size - 8 bytes)
+            headerBuffer.writeUInt32LE(dataSize + 44 - 8, 4);
+            // Format (WAVE identifier)
+            headerBuffer.write('WAVE', 8);
+            // Subchunk1 ID (fmt identifier)
+            headerBuffer.write('fmt ', 12);
+            // Subchunk1 size (16 for PCM)
+            headerBuffer.writeUInt32LE(16, 16);
+            // Audio format (1 for PCM)
+            headerBuffer.writeUInt16LE(1, 20);
+            // Number of channels (1 for mono, 2 for stereo)
+            headerBuffer.writeUInt16LE(1, 22);
+            // Sample rate (e.g., 44100)
+            headerBuffer.writeUInt32LE(sampleRate, 24);
+            // Byte rate (SampleRate * NumChannels * BitsPerSample / 8)
+            headerBuffer.writeUInt32LE(sampleRate * 1 * 16, 28);
+            // Block align (NumChannels * BitsPerSample / 8)
+            headerBuffer.writeUInt16LE(1 * 16, 32);
+            // Bits per sample (e.g., 16 bits)
+            headerBuffer.writeUInt16LE(8, 34);
+            // Subchunk2 ID (data identifier)
+            headerBuffer.write('data', 36);
+            // Subchunk2 size (size of audio data)
+            headerBuffer.writeUInt32LE(dataSize, 40);
 
-            // Write the "WAVE" chunk marker (8 bytes)
-            view.setUint8(8, 'W'.charCodeAt(0));
-            view.setUint8(9, 'A'.charCodeAt(0));
-            view.setUint8(10, 'V'.charCodeAt(0));
-            view.setUint8(11, 'E'.charCodeAt(0));
-            view.setUint8(12, 'f'.charCodeAt(0));
-            view.setUint8(13, 'm'.charCodeAt(0));
-            view.setUint8(14, 't'.charCodeAt(0));
-            view.setUint8(15, ' '.charCodeAt(0));
+            const testNewBuffer = Buffer.concat([headerBuffer, Buffer.from(buf)], Buffer.from(buf).length + 44)
 
-            // Write the size of the "fmt " subchunk (16 for PCM)
-            view.setUint32(16, 16, true);
+            // // Write the RIFF header (first 4 bytes)
+            // view.setUint8(0, 'R'.charCodeAt(0));
+            // view.setUint8(1, 'I'.charCodeAt(0));
+            // view.setUint8(2, 'F'.charCodeAt(0));
+            // view.setUint8(3, 'F'.charCodeAt(0));
 
-            // Write the audio format (1 for PCM)
-            view.setUint16(20, 1, true);
+            // // Write the file size (totalSize - 8) as a little-endian 32-bit integer
+            // view.setUint32(4, totalSize - 8, true);
 
-            // Write the number of channels (1 for mono)
-            view.setUint16(22, numChannels, true);
+            // // Write the "WAVE" chunk marker (8 bytes)
+            // view.setUint8(8, 'W'.charCodeAt(0));
+            // view.setUint8(9, 'A'.charCodeAt(0));
+            // view.setUint8(10, 'V'.charCodeAt(0));
+            // view.setUint8(11, 'E'.charCodeAt(0));
+            // view.setUint8(12, 'f'.charCodeAt(0));
+            // view.setUint8(13, 'm'.charCodeAt(0));
+            // view.setUint8(14, 't'.charCodeAt(0));
+            // view.setUint8(15, ' '.charCodeAt(0));
 
-            // Write the sample rate
-            view.setUint32(24, sampleRate, true);
+            // // Write the size of the "fmt " subchunk (16 for PCM)
+            // view.setUint32(16, 16, true);
 
-            // Write the byte rate
-            view.setUint32(28, byteRate, true);
+            // // Write the audio format (1 for PCM)
+            // view.setUint16(20, 1, true);
 
-            // Write the block alignment (number of bytes per sample)
-            view.setUint16(32, (numChannels * bitsPerSample) / 8, true);
+            // // Write the number of channels (1 for mono)
+            // view.setUint16(22, numChannels, true);
 
-            // Write the bits per sample
-            view.setUint16(34, bitsPerSample, true);
+            // // Write the sample rate
+            // view.setUint32(24, sampleRate, true);
 
-            // Write the "data" subchunk marker (36-39)
-            view.setUint8(36, 'd'.charCodeAt(0));
-            view.setUint8(37, 'a'.charCodeAt(0));
-            view.setUint8(38, 't'.charCodeAt(0));
-            view.setUint8(39, 'a'.charCodeAt(0));
+            // // Write the byte rate
+            // view.setUint32(28, byteRate, true);
 
-            // Write the size of the audio data
-            view.setUint32(40, dataSize, true);
+            // // Write the block alignment (number of bytes per sample)
+            // view.setUint16(32, (numChannels * bitsPerSample) / 8, true);
 
-            // Copy the existing audio data to the new buffer after the header
-            const audioDataView = new DataView(await blob.arrayBuffer());
-            for (let i = 0; i < dataSize; i++) {
-              view.setUint8(headerSize + i, audioDataView.getUint8(i));
-            }
+            // // Write the bits per sample
+            // view.setUint16(34, bitsPerSample, true);
 
-            console.log(audioDataView)
-            console.log(view)
+            // // Write the "data" subchunk marker (36-39)
+            // view.setUint8(36, 'd'.charCodeAt(0));
+            // view.setUint8(37, 'a'.charCodeAt(0));
+            // view.setUint8(38, 't'.charCodeAt(0));
+            // view.setUint8(39, 'a'.charCodeAt(0));
+
+            // // Write the size of the audio data
+            // view.setUint32(40, dataSize, true);
+
+            // // Copy the existing audio data to the new buffer after the header
+            // const audioDataView = new DataView(await blob.arrayBuffer());
+            // for (let i = 0; i < dataSize; i++) {
+            //   view.setUint8(headerSize + i, audioDataView.getUint8(i));
+            // }
+
+            // console.log(audioDataView)
+            // console.log(view)
 
             // Once you've written the header and audio data, you can create a Blob
-            const modifiedBlob = new Blob([newBuffer], { type: 'audio/wav' });
+            const modifiedBlob = new Blob([testNewBuffer], { type: 'audio/wav' });
 
             const wavFile = new File([modifiedBlob], 'testing.wav', { type: 'audio/wav' })
 
@@ -167,7 +185,7 @@ export default function Home() {
 
             downloadLink.click()
             const transcription = await transcribeAudio(wavFile)
-            console.log(transcription)
+
             // setRecordedChunks(blob); // Set recorded audio in state
           };
 
