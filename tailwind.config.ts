@@ -19,7 +19,8 @@ const config: Config = {
         primary: 'var(--primary-blue, #1870F0)'
       },
       colors: {
-        primary: 'var(--primary-blue, #1870F0)'
+        primary: 'var(--primary-blue, #1870F0)',
+        grey: 'var(--neutral-30, #6D7C88)',
       }
     },
   },
