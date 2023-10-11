@@ -16,11 +16,17 @@ const config: Config = {
       backgroundColor: {
         container: 'var(--neutral-10, #F9FAFC)',
         content: 'var(--neutral-00, #FFF)',
-        primary: 'var(--primary-blue, #1870F0)'
+        primary: 'var(--primary-blue, #1870F0)',
+        step: 'var(--neutral-20, #E0E6EB)'
       },
       colors: {
         primary: 'var(--primary-blue, #1870F0)',
         grey: 'var(--neutral-30, #6D7C88)',
+        primaryDarker: 'var(--primary-blue-darker, #083F78)',
+        white: 'var(--neutral-10, #F9FAFC)'
+      },
+      borderColor: {
+        container: 'var(--neutral-20, #E0E6EB)'
       }
     },
   },

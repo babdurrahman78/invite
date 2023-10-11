@@ -14,9 +14,7 @@ export default function layout({
                     <p>Ardi Tapiardo</p>
                 </div>
             </nav>
-            <div className="bg-container w-full flex flex-col items-center pt-[72px] h-[680px]">{children}</div>
-
-            {/* <p className="text-grey bg-container w-full text-center">1 of 5</p> */}
+            <div className="bg-container w-full h-[780px]">{children}</div>
         </div>
     )
 }
