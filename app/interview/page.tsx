@@ -4,6 +4,7 @@ import Step1 from "@/components/interview-preparation/Step1";
 import Step2 from "@/components/interview-preparation/Step2";
 import Step3 from "@/components/interview-preparation/Step3";
 import Step4 from "@/components/interview-preparation/Step4";
+import Step5 from "@/components/interview-preparation/Step5";
 import { INTERVIEW_PREPARATION } from "@/constant/interview-preparation";
 import { useState } from 'react'
 
@@ -30,6 +31,8 @@ export default function page() {
             return <Step3 step={step} setStep={setStep} />
         } else if (step + 1 === 4) {
             return <Step4 step={step} setStep={setStep} />
+        } else if (step + 1 === 5) {
+            return <Step5 step={step} setStep={setStep} />
         }
     }
     return (

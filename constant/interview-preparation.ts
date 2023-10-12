@@ -1,8 +1,3 @@
-import Step1 from "@/components/interview-preparation/Step1";
-import Step2 from "@/components/interview-preparation/Step2";
-import Step3 from "@/components/interview-preparation/Step3";
-import Step4 from "@/components/interview-preparation/Step4";
-
 export const INTERVIEW_PREPARATION = [
     {
         welcome: 'Hi, Ardi Tapiardo!',
@@ -23,5 +18,9 @@ export const INTERVIEW_PREPARATION = [
         welcome: null,
         title: "Device Specification Checking",
 
+    },
+    {
+        welcome: null,
+        title: "Camera and Microphone Check"
     }
 ]
