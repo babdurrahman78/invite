@@ -56,7 +56,7 @@ export default function Step5(
                         if (canvasContext) {
                             canvasContext.clearRect(0, 0, canvas.width, canvas.height);
                             canvasContext.lineWidth = 2;
-                            canvasContext.strokeStyle = 'rgb(0, 0, 0)';
+                            canvasContext.strokeStyle = '#FFFFFF';
                             canvasContext.beginPath();
 
                             const sliceWidth = (canvas.width * 1.0) / bufferLength;
@@ -137,9 +137,9 @@ export default function Step5(
                     background: "rgba(7, 7, 8, 0.40)",
                     backdropFilter: "blur(4px)",
                 }} className="p-4 h-[74px] absolute bottom-[16px] left-[150px] right-[150px] rounded-[4px]">
-                    <div className="flex gap-6">
+                    <div className="flex gap-6 items-center">
                         <Button type="primary" label="Mic Test" />
-                        <canvas ref={canvasRef} width={200} height={200}></canvas>
+                        <canvas ref={canvasRef} width={400} height={50}></canvas>
                     </div>
                 </div>
             </div>
