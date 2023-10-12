@@ -1,8 +1,10 @@
 'use client'
 
-import Button from "@/components/common/Button";
+import Step1 from "@/components/interview-preparation/Step1";
+import Step2 from "@/components/interview-preparation/Step2";
+import Step3 from "@/components/interview-preparation/Step3";
+import Step4 from "@/components/interview-preparation/Step4";
 import { INTERVIEW_PREPARATION } from "@/constant/interview-preparation";
-import Image from "next/image";
 import { useState } from 'react'
 
 export default function page() {
@@ -18,6 +20,18 @@ export default function page() {
             return <p className="text-[28px] leading-[34px] text-primaryDarker text-center font-bold" >{INTERVIEW_PREPARATION[step].title}</p>
         }
     }
+
+    const renderComponent = (step: number) => {
+        if (step + 1 === 1) {
+            return <Step1 step={step} setStep={setStep} />
+        } else if (step + 1 === 2) {
+            return <Step2 step={step} setStep={setStep} />
+        } else if (step + 1 === 3) {
+            return <Step3 step={step} setStep={setStep} />
+        } else if (step + 1 === 4) {
+            return <Step4 step={step} setStep={setStep} />
+        }
+    }
     return (
         <div className="w-full flex flex-col justify-center">
             <div className={`w-full grid grid-cols-5 gap-[2px]`}>
@@ -31,8 +45,11 @@ export default function page() {
                 <div className="mb-[24px]">
                     {isWelcomeExist(step)}
                 </div>
-                {INTERVIEW_PREPARATION[step].component({ step, setStep })}
 
+                {
+                    renderComponent(step)
+                }
+                <p className="text-grey bg-container w-full text-center">{`${step + 1} of 5`}</p>
             </div>
         </div>
     )

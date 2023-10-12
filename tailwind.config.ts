@@ -26,7 +26,8 @@ const config: Config = {
         white: 'var(--neutral-10, #F9FAFC)'
       },
       borderColor: {
-        container: 'var(--neutral-20, #E0E6EB)'
+        container: 'var(--neutral-20, #E0E6EB)',
+        primary: 'var(--primary-blue, #1870F0)',
       }
     },
   },

@@ -1,14 +1,13 @@
 import Image from "next/image";
 import Button from "../common/Button";
-import { Dispatch, SetStateAction } from "react";
 import { IStep } from "@/interfaces/common";
 
 export default function Step1(
     { step, setStep }: IStep
 ): JSX.Element {
     return (
-        <div>
-            <div className="bg-content border border-container rounded-[8px] py-[32px] px-[48px]">
+        <div className="h-[510px]">
+            <div className="bg-content border  border-container rounded-[8px] py-[32px] px-[48px]">
                 <div className="flex flex-col gap-[20px]">
                     <p>At this stage, you will be interviewed by an Artificial Intelligence named Vivi. The interview will be conducted interactively, where your spoken responses will be recorded and responded to by Vivi in text format.</p>
                     <div className="flex gap-4 items-center">
@@ -43,7 +42,7 @@ export default function Step1(
                     <Image src={'/next.png'} alt="next" width={20} height={20} />
                 </div>} />
             </div>
-            <p className="text-grey mt-[60px] bg-container w-full text-center">{`${step + 1} of 5`}</p>
+
         </div>
     )
 }
