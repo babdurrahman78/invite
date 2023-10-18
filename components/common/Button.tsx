@@ -19,6 +19,20 @@ export default function Button({
   onClick,
   disabled,
 }: IButtonProps) {
+  const renderBgAndColor = () => {
+    if (disabled) {
+      return "bg-gray-200 text-gray-300";
+    } else {
+      return type === "primary"
+        ? "bg-primary"
+        : type === "border-primary"
+        ? "border border-primary"
+        : type === "white"
+        ? "bg-content"
+        : "";
+    }
+  };
+
   return (
     <button
       onClick={onClick}
@@ -31,15 +45,7 @@ export default function Button({
             ? "0px 1px 3px 1px rgba(18, 23, 28, 0.08), 0px 1px 2px 0px rgba(18, 23, 28, 0.20)"
             : "",
       }}
-      className={`text-${labelColor} ${
-        type === "primary"
-          ? "bg-primary"
-          : type === "border-primary"
-          ? "border border-primary"
-          : type === "white"
-          ? "bg-content"
-          : ""
-      } ${disabled && "bg-gray-200 text-gray-300"} rounded-[4px] $`}
+      className={`text-${labelColor} ${renderBgAndColor()} rounded-[4px] $`}
     >
       {label}
     </button>

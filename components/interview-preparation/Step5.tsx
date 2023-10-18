@@ -45,6 +45,7 @@ export default function Step5({step, setStep}: IStep): JSX.Element {
         if (isMicOn) {
           try {
             const audioSource = audioContext?.createMediaStreamSource(stream);
+            audioSource?.connect(audioContext?.destination!);
             let bufferLength: any;
             if (analyser) {
               audioSource?.connect(analyser);
@@ -131,7 +132,7 @@ export default function Step5({step, setStep}: IStep): JSX.Element {
       <div className="w-[866px] h-[433px] relative bg-black rounded-[8px]">
         {
           <video
-            style={{width: "100%", height: "433px"}}
+            style={{width: "100%", height: "433px", transform: "scaleX(-1)"}}
             ref={videoRef}
             autoPlay
             playsInline
