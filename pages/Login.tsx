@@ -14,10 +14,14 @@ export default function Login() {
     setMaskedPassword("*".repeat(value.length));
   };
 
+  // 930+510 //
+
   return (
-    <div className="flex">
-      <Image src={"/astra-bg.svg"} alt="astra-bg" width={930} height={780} />
-      <div className="bg-content w-[510px] pt-[48px] px-[24px]">
+    <div className="flex h-screen w-screen">
+      <div className="relative xl:w-[70%] lg:w-[65%]">
+        <Image src={"/astra-bg.svg"} alt="astra-bg" objectFit="cover" fill />
+      </div>
+      <div className="bg-content relative xl:w-[30%] lg-[35%] pt-[48px] px-[24px]">
         <Image
           src={"/astra-logo.png"}
           alt="astra-logo.png"
@@ -27,7 +31,7 @@ export default function Login() {
 
         {/* Form  */}
         <div className="mt-[128px] flex flex-col gap-[48px]">
-          <p className="font-bold px-[100px] text-[#083F78] text-[28px] text-center leading-[34px]">
+          <p className="font-bold lg:px-[50px] px-[100px] text-[#083F78] text-[28px] text-center leading-[34px]">
             Welcome to Interview Session
           </p>
           <div className="m-auto w-[300px]">
@@ -52,10 +56,10 @@ export default function Login() {
               <span className="font-bold text-primary">Contact us</span>
             </p>
           </div>
-          <p className="mt-[132px] text-center">
-            © PT Astra International Tbk 2023
-          </p>
         </div>
+        <p className="absolute bottom-5 left-0 right-0 text-center">
+          © PT Astra International Tbk 2023
+        </p>
       </div>
     </div>
   );
