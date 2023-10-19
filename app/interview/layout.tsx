@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function layout({children}: {children: React.ReactNode}) {
   return (
-    <div className="flex flex-col w-[1440px] h-[780px] items-center">
+    <div className="flex flex-col max-w-[1440px] max-h-[780px] items-center">
       <nav className="h-[64px] w-full justify-between flex px-[65px] py-[16px] bg-content">
         <Image
           className=""
