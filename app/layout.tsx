@@ -18,8 +18,6 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       >
         <div className="max-w-[1440px] basis-full max-[780px]">{children}</div>
       </body>
-      <Script src="/recorder.js" async />
-      <Script src="/enabler.js" />
     </html>
   );
 }

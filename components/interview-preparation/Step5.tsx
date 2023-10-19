@@ -2,6 +2,7 @@ import Image from "next/image";
 import Button from "../common/Button";
 import {IStep} from "@/interfaces/common";
 import React, {useEffect, useRef, useState} from "react";
+import Link from "next/link";
 
 export default function Step5({step, setStep}: IStep): JSX.Element {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -184,17 +185,18 @@ export default function Step5({step, setStep}: IStep): JSX.Element {
             </div>
           }
         />
-        <Button
-          width="278px"
-          height="44px"
-          onClick={() => setStep(step + 1)}
-          type="primary"
-          label={
-            <div className="flex items-center justify-center gap-[4px]">
-              <p>Start the Interview Session</p>
-            </div>
-          }
-        />
+        <Link href={"/interview/session"}>
+          <Button
+            width="278px"
+            height="44px"
+            type="primary"
+            label={
+              <div className="flex items-center justify-center gap-[4px]">
+                <p>Start the Interview Session</p>
+              </div>
+            }
+          />
+        </Link>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@
 import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 import Button from "@/components/common/Button";
 import {useEffect, useRef, useState} from "react";
+import Script from "next/script";
 
 const ENV = {
   baseUrl: "https://jardinespocapi.azurewebsites.net",
@@ -30,7 +31,6 @@ export default function Page() {
         azureSubscriptionKey,
         azureServiceRegion
       );
-      speechConfig.speechRecognitionLanguage = "id-ID";
 
       const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
       recognizer.recognizeOnceAsync(result => {
@@ -199,6 +199,8 @@ export default function Page() {
         Transcribe
       </button>{" "}
       <ol className="hidden" id="recordingsList"></ol>
+      <Script src="/recorder.js" async />
+      <Script src="/enabler.js" />
     </div>
   );
 }
