@@ -21,8 +21,6 @@ export default function Step5({step, setStep}: IStep): JSX.Element {
     }
   };
 
-  const draw = async (analyser: AnalyserNode, dataArray: Uint8Array) => {};
-
   useEffect(() => {
     const canvas = canvasRef.current;
     let audioContext: AudioContext | null = null;
@@ -151,10 +149,20 @@ export default function Step5({step, setStep}: IStep): JSX.Element {
           <div className="flex gap-6 items-center">
             <Button
               onClick={() => setIsMicOn(!isMicOn)}
-              type="primary"
-              label={!isMicOn ? "Mic Test" : "Stop Test"}
+              type={!isMicOn ? "white" : "danger"}
+              width="150px"
+              label={
+                !isMicOn ? (
+                  <div className="flex items-center justify-center gap-[10px]">
+                    <Image src={"/mic.png"} alt="mic" width={15} height={15} />
+                    <p className="font-bold text-primary">Mic Test</p>
+                  </div>
+                ) : (
+                  <p>Stop Test</p>
+                )
+              }
             />
-            <canvas ref={canvasRef} width={400} height={50}></canvas>
+            <canvas ref={canvasRef} width={350} height={50}></canvas>
           </div>
         </div>
       </div>

@@ -3,6 +3,9 @@ import Button from "../common/Button";
 import {IStep} from "@/interfaces/common";
 import {useState} from "react";
 
+import CheckGreen from "../../public/check-green.png";
+import Sync from "../../public/sync.png";
+
 export default function Step4({step, setStep}: IStep): JSX.Element {
   const [check, setCheck] = useState(false);
 
@@ -26,7 +29,7 @@ export default function Step4({step, setStep}: IStep): JSX.Element {
                 <p className="font-semibold  w-[256px]">Google Chrome</p>
                 <p className=" w-[42px]">
                   <Image
-                    src={"/check-green.png"}
+                    src={CheckGreen}
                     alt="check-green.png"
                     width={30}
                     height={30}
@@ -39,7 +42,7 @@ export default function Step4({step, setStep}: IStep): JSX.Element {
                 <p className="font-semibold  w-[256px]">8 GB</p>
                 <p className=" w-[42px]">
                   <Image
-                    src={"/check-green.png"}
+                    src={CheckGreen}
                     alt="check-green.png"
                     width={30}
                     height={30}
@@ -52,7 +55,7 @@ export default function Step4({step, setStep}: IStep): JSX.Element {
                 <p className="font-semibold  w-[256px]">Core i5</p>
                 <p className=" w-[42px]">
                   <Image
-                    src={"/check-green.png"}
+                    src={CheckGreen}
                     alt="check-green.png"
                     width={30}
                     height={30}
@@ -65,7 +68,7 @@ export default function Step4({step, setStep}: IStep): JSX.Element {
                 <p className="font-semibold  w-[256px]">On</p>
                 <p className=" w-[42px]">
                   <Image
-                    src={"/check-green.png"}
+                    src={CheckGreen}
                     alt="check-green.png"
                     width={30}
                     height={30}
@@ -78,7 +81,7 @@ export default function Step4({step, setStep}: IStep): JSX.Element {
                 <p className="font-semibold  w-[256px]">On</p>
                 <p className=" w-[42px]">
                   <Image
-                    src={"/check-green.png"}
+                    src={CheckGreen}
                     alt="check-green.png"
                     width={30}
                     height={30}
@@ -90,12 +93,7 @@ export default function Step4({step, setStep}: IStep): JSX.Element {
                   type="border-primary"
                   label={
                     <div className="flex items-center justify-center gap-[4px]">
-                      <Image
-                        src={"/sync.png"}
-                        alt="previous"
-                        width={20}
-                        height={20}
-                      />
+                      <Image src={Sync} alt="sync" width={20} height={20} />
                       <p>Re-run Check</p>
                     </div>
                   }

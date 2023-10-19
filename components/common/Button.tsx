@@ -1,7 +1,7 @@
 import {ReactNode} from "react";
 
 interface IButtonProps {
-  type: "primary" | "ghost" | "border-primary" | "white";
+  type: "primary" | "ghost" | "border-primary" | "white" | "danger";
   label: ReactNode;
   width?: string;
   height?: string;
@@ -29,6 +29,8 @@ export default function Button({
         ? "border border-primary"
         : type === "white"
         ? "bg-content"
+        : type === "danger"
+        ? "bg-danger"
         : "";
     }
   };
