@@ -4,9 +4,17 @@ import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 import Button from "@/components/common/Button";
 import {useEffect, useRef, useState} from "react";
 
+const ENV = {
+  baseUrl: "https://jardinespocapi.azurewebsites.net",
+  customapikey: "774620",
+  GUIDSession: "09aa7f05-e219-4a6f-9679-db1e07a71082",
+  GUISession: "09aa7f05-e219-4a6f-9679-db1e07a71082",
+};
+
 export default function Page() {
   const [isAnswering, setIsAnswering] = useState(false);
-  const [question, setQuestion] = useState(null);
+  const [index, setIndex] = useState(1);
+  const [question, setQuestion] = useState<string>();
 
   const azureSubscriptionKey = "3cf9ad70a16f4a2b9383e201129b9ef0";
   const azureServiceRegion = "eastus";
@@ -42,6 +50,7 @@ export default function Page() {
     try {
       const transcription = await transcribeAudio(file);
       console.log("Transcription:", transcription);
+      return transcription;
     } catch (error) {
       console.error("Error transcribing audio:", error);
     }
@@ -64,15 +73,41 @@ export default function Page() {
 
   useEffect(() => {
     const init = async () => {
-      const res = await fetch(
-        "https://jardinespocapi.azurewebsites.net/ChatGPT/Start?customapikey=774620&GUIDSession=09aa7f05-e219-4a6f-9679-db1e07a71082"
-      );
-      const data = await res.json();
-      console.log(data);
-      // console.log(res);
+      try {
+        const res = await fetch(
+          `${ENV.baseUrl}/ChatGPT/Start?customapikey=${ENV.customapikey}&GUIDSession=${ENV.GUIDSession}`
+        );
+        const data = await res.json();
+        setQuestion(data.gptInitialResponse);
+      } catch (e) {
+        console.log(e);
+      }
     };
     init();
   }, []);
+
+  const submitAnswer = async (answer: string) => {
+    try {
+      const res = await fetch(
+        `${ENV.baseUrl}/ChatGPT/Chat?customapikey=${ENV.customapikey}&GUIDSession=${ENV.GUISession}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            intervieweeAnswer: answer,
+          }),
+        }
+      );
+      const data = await res.json();
+      setQuestion(data.gptNextQuestion);
+      setIndex(index + 1);
+    } catch (e) {
+      console.log(e);
+    }
+    // setQuestion(data.gptInitialResponse);
+  };
 
   const transcribe = async () => {
     const audioLink = document.getElementsByTagName("audio")[0];
@@ -84,7 +119,8 @@ export default function Page() {
       const blob = await res.blob();
 
       const file = new File([blob], "test.wav");
-      await handleTranscription(file);
+      const transcription = await handleTranscription(file);
+      await submitAnswer(transcription || "");
     }
   };
 
@@ -113,13 +149,9 @@ export default function Page() {
         {/* Question  */}
         <div className="rounded-lg xl:w-[642px] lg:w-[500px] h-[422px] bg-content py-[32px] px-[29px]">
           <p className="text-[20px]  leading-[34px] text-primaryDarker font-bold">
-            {`Question 1`}
+            {`Question ${index}`}
           </p>
-          <p className="mt-[25px]">
-            {
-              " Great, I’ll call you John. John, could you tell me about the time when you were a Developer at Astra Graphia Digital? what kind of project do you handle?"
-            }
-          </p>
+          <p className="mt-[25px]">{question}</p>
         </div>
 
         {/* Question  */}
