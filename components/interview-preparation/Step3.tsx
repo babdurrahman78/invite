@@ -21,9 +21,7 @@ export default function Step3({step, setStep}: IStep) {
         <li className="flex gap-3">
           <p className="text-primary">2.</p>
           <p>
-            Uploading that contains elements of ethnicity, religion, race and
-            inter-group ("SARA"), and pornography, including anything that is
-            prohibited by applicable regulations and laws.
+            {`Uploading that contains elements of ethnicity, religion, race and inter-group ("SARA"), and pornography, including anything that is prohibited by applicable regulations and laws.`}
           </p>
         </li>
         <li className="flex gap-3">

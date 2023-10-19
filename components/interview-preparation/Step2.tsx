@@ -13,11 +13,9 @@ export default function Step2({step, setStep}: IStep) {
         <li className="flex gap-4">
           <p className="text-primary">1.</p>
           <p>
-            You hereby give your explicit consent to the Company to utilize your
-            personal data and/or transaction data for the purpose of using the
-            Website, transactions, the Company's business activities, and
-            operational needs, as well as other purposes related to the
-            provision of services on this Website.
+            {
+              "You hereby give your explicit consent to the Company to utilize your personal data and/or transaction data for the purpose of using the Website, transactions, the Company's business activities, and operational needs, as well as other purposes related to the provision of services on this Website."
+            }
           </p>
         </li>
         <li className="flex gap-3">
@@ -44,9 +42,9 @@ export default function Step2({step, setStep}: IStep) {
         <li className="flex gap-3">
           <p className="text-primary">4.</p>
           <p>
-            All information and data that the Company receives from you through
-            this Site will be used by the Company to develop the Company's
-            services, including the Company's marketing services.
+            {
+              "All information and data that the Company receives from you through this Site will be used by the Company to develop the Company's services, including the Company's marketing services."
+            }
           </p>
         </li>
       </ul>
