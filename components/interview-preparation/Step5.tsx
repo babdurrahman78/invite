@@ -128,15 +128,13 @@ export default function Step5({step, setStep}: IStep): JSX.Element {
   return (
     <div className="h-[545px]">
       <div className="w-[866px] h-[433px] relative bg-black rounded-[8px]">
-        {
-          <video
-            style={{width: "100%", height: "433px", transform: "scaleX(-1)"}}
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-          />
-        }
+        <video
+          style={{width: "100%", height: "433px", transform: "scaleX(-1)"}}
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+        />
 
         <div
           style={{

@@ -19,6 +19,7 @@ const config: Config = {
         primary: "var(--primary-blue, #1870F0)",
         step: "var(--neutral-20, #E0E6EB)",
         danger: "var(--danger-main, #F01818);",
+        blackBlur: "rgba(7, 7, 8, 0.60)",
       },
       colors: {
         primary: "var(--primary-blue, #1870F0)",
