@@ -1,6 +1,5 @@
 import Image from "next/image";
 import {ChangeEvent, useState} from "react";
-import {redirect} from "next/navigation";
 import Link from "next/link";
 
 export default function Login() {
@@ -13,8 +12,6 @@ export default function Login() {
     console.log(value);
     setMaskedPassword("*".repeat(value.length));
   };
-
-  // 930+510 //
 
   return (
     <div className="flex h-screen w-screen">

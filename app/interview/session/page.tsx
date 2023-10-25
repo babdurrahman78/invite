@@ -1,27 +1,31 @@
 "use client";
 
 import * as sdk from "microsoft-cognitiveservices-speech-sdk";
+import Image from "next/image";
 import Button from "@/components/common/Button";
-import {useEffect, useRef, useState} from "react";
+import {useContext, useEffect, useRef, useState} from "react";
 import Script from "next/script";
-
-const ENV = {
-  baseUrl: "https://jardinespocapi.azurewebsites.net",
-  customapikey: "774620",
-  GUIDSession: "09aa7f05-e219-4a6f-9679-db1e07a71082",
-  GUISession: "09aa7f05-e219-4a6f-9679-db1e07a71082",
-};
+import {FinishInterviewContext} from "@/components/finishInterviewComponent";
+import {useRouter} from "next/navigation";
 
 export default function Page() {
+  const router = useRouter();
+  const finishInterviewContext = useContext(FinishInterviewContext);
   const [isAnswering, setIsAnswering] = useState(false);
   const [index, setIndex] = useState(1);
   const [question, setQuestion] = useState<string>();
+  const [isLoading, setIsLoading] = useState(true);
 
   const azureSubscriptionKey = "3cf9ad70a16f4a2b9383e201129b9ef0";
   const azureServiceRegion = "eastus";
+  const uuid = useRef<string>("");
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
+  const KEY = {
+    baseUrl: "https://jardinespocapi.azurewebsites.net",
+    customapikey: "774620",
+  };
   async function transcribeAudio(audioFile: File): Promise<string> {
     return new Promise((resolve, reject) => {
       console.log(audioFile);
@@ -71,16 +75,29 @@ export default function Page() {
     startCamera();
   }, []);
 
+  function uuidv4() {
+    return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c: any) =>
+      (
+        c ^
+        (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
+      ).toString(16)
+    );
+  }
+
   useEffect(() => {
     const init = async () => {
       try {
+        setIsLoading(true);
+        uuid.current = uuidv4();
         const res = await fetch(
-          `${ENV.baseUrl}/ChatGPT/Start?customapikey=${ENV.customapikey}&GUIDSession=${ENV.GUIDSession}`
+          `${KEY.baseUrl}/ChatGPT/Start?customapikey=${KEY.customapikey}&GUIDSession=${uuid.current}`
         );
         const data = await res.json();
         setQuestion(data.gptInitialResponse);
       } catch (e) {
         console.log(e);
+      } finally {
+        setIsLoading(false);
       }
     };
     init();
@@ -88,8 +105,9 @@ export default function Page() {
 
   const submitAnswer = async (answer: string) => {
     try {
+      setIsLoading(true);
       const res = await fetch(
-        `${ENV.baseUrl}/ChatGPT/Chat?customapikey=${ENV.customapikey}&GUIDSession=${ENV.GUISession}`,
+        `${KEY.baseUrl}/ChatGPT/Chat?customapikey=${KEY.customapikey}&GUIDSession=${uuid.current}`,
         {
           method: "POST",
           headers: {
@@ -105,8 +123,9 @@ export default function Page() {
       setIndex(index + 1);
     } catch (e) {
       console.log(e);
+    } finally {
+      setIsLoading(false);
     }
-    // setQuestion(data.gptInitialResponse);
   };
 
   const transcribe = async () => {
@@ -140,21 +159,30 @@ export default function Page() {
         >
           <div className="rounded-full w-4 h-4 bg-danger"></div>
           <p className="font-bold text-white text-center text-[20px]">
-            00:00:06
+            {"00:00:06"}
           </p>
         </div>
       </div>
       {/* Main Interview */}
       <div className="flex gap-[27px] justify-center">
         {/* Question  */}
-        <div className="rounded-lg xl:w-[642px] lg:w-[500px] h-[422px] bg-content py-[32px] px-[29px]">
-          <p className="text-[20px]  leading-[34px] text-primaryDarker font-bold">
-            {`Question ${index}`}
-          </p>
-          <p className="mt-[25px]">{question}</p>
+        <div className="rounded-lg relative flex xl:w-[642px] lg:w-[500px] h-[422px] bg-content py-[32px] px-[29px]">
+          <Image
+            className="absolute -le"
+            src={"/vivi.png"}
+            alt="vivi.png"
+            width={300}
+            height={800}
+          />
+          <div>
+            <p className="text-[20px]  leading-[34px] text-primaryDarker font-bold">
+              {`Question ${index}`}
+            </p>
+            <p className="mt-[25px]">{isLoading ? `. . .` : question}</p>
+          </div>
         </div>
 
-        {/* Question  */}
+        {/* Video  */}
         <div className="rounded-lg flex flex-col items-center gap-6 xl:w-[642px] lg:w-[500px]">
           <video
             style={{
@@ -177,7 +205,13 @@ export default function Page() {
             height="44px"
             id={"recordButton"}
             onClick={() => setIsAnswering(true)}
-            className={`${!isAnswering ? "block" : "hidden"}`}
+            className={`${
+              finishInterviewContext?.isFinish
+                ? "hidden"
+                : !isAnswering
+                ? "block"
+                : "hidden"
+            }`}
           />
 
           <Button
@@ -187,14 +221,29 @@ export default function Page() {
             height="44px"
             id="stopButton"
             onClick={() => setIsAnswering(false)}
-            className={`${isAnswering ? "block" : "hidden"}`}
+            className={`${
+              finishInterviewContext?.isFinish
+                ? "hidden"
+                : isAnswering
+                ? "block"
+                : "hidden"
+            }`}
+          />
+
+          <Button
+            type={"danger"}
+            label={"Close Interview"}
+            width="250px"
+            height="44px"
+            onClick={() => {
+              router.push("/report/" + uuid.current);
+            }}
+            className={`${
+              finishInterviewContext?.isFinish ? "block" : "hidden"
+            }`}
           />
         </div>
       </div>
-      {/* <button id="recordButton">Start Recording</button> */}
-      {/* <button id="stopButton">Stop Recording</button>
-      <button>Download Recording</button>
-    <button onClick={transcribe}>Download audio</button> */}
       <button className="hidden" id="transcribe" onClick={transcribe}>
         Transcribe
       </button>{" "}
