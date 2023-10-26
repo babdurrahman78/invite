@@ -144,9 +144,9 @@ export default function Page() {
   };
 
   return (
-    <div className="mt-[64px] flex flex-col gap-6">
+    <div className="mt-[64px] flex flex-col gap-6 ">
       {/* Title */}
-      <div className="flex justify-center relative">
+      <div className="flex justify-center relative ">
         <p className="text-[28px] leading-[34px] text-primaryDarker text-center font-bold">
           Interview Session
         </p>
@@ -155,7 +155,7 @@ export default function Page() {
           style={{
             backdropFilter: "blur(4px)",
           }}
-          className="absolute flex gap-2 items-center justify-center right-5 w-[150px] h-[42px] bg-blackBlur rounded"
+          className="absolute flex gap-2 items-center justify-center right-[66px] w-[150px] h-[42px] bg-blackBlur rounded"
         >
           <div className="rounded-full w-4 h-4 bg-danger"></div>
           <p className="font-bold text-white text-center text-[20px]">
@@ -164,18 +164,24 @@ export default function Page() {
         </div>
       </div>
       {/* Main Interview */}
-      <div className="flex gap-[27px] justify-center">
+      <div className="flex gap-[27px] justify-center min-[1440px]:px-[66px]">
         {/* Question  */}
-        <div className="rounded-lg relative flex xl:w-[642px] lg:w-[500px] h-[422px] bg-content py-[32px] px-[29px]">
-          <Image
-            className="absolute -le"
-            src={"/vivi.png"}
-            alt="vivi.png"
-            width={300}
-            height={800}
-          />
-          <div>
-            <p className="text-[20px]  leading-[34px] text-primaryDarker font-bold">
+        <div
+          className={`rounded-lg ${
+            isAnswering ? "w-[40%]" : "w-[50%]"
+          } relative flex  h-[422px] bg-content py-[32px] px-[29px]`}
+        >
+          {!isAnswering && (
+            <Image
+              className="absolute -left-12 -top-12"
+              src={"/vivi.png"}
+              alt="vivi.png"
+              width={300}
+              height={800}
+            />
+          )}
+          <div className={`${!isAnswering && "ml-[200px]"} overflow-auto`}>
+            <p className="text-[20px] leading-[34px] text-primaryDarker font-bold">
               {`Question ${index}`}
             </p>
             <p className="mt-[25px]">{isLoading ? `. . .` : question}</p>
@@ -183,7 +189,11 @@ export default function Page() {
         </div>
 
         {/* Video  */}
-        <div className="rounded-lg flex flex-col items-center gap-6 xl:w-[642px] lg:w-[500px]">
+        <div
+          className={`rounded-lg ${
+            isAnswering ? "w-[60%]" : "w-[50%]"
+          } flex flex-col items-center gap-6`}
+        >
           <video
             style={{
               transform: "scaleX(-1)",
