@@ -10,6 +10,7 @@ const KEY = {
 export default function Page({params}: {params: {id: string}}) {
   const [summary, setSummary] = useState("");
   const [recommendation, setRecommendation] = useState("");
+  const [video, setVideo] = useState<any>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -17,8 +18,13 @@ export default function Page({params}: {params: {id: string}}) {
         const res = await fetch(
           `${KEY.baseUrl}/ChatGPT/Summary?customapikey=${KEY.customapikey}&GUIDSession=${params.id}`
         );
+        const vid = await fetch(
+          `${KEY.baseUrl}/ChatGPT/GetPlaybackVideoURL?customapikey=${KEY.customapikey}&GUIDSession=${params.id}`
+        );
         const data = await res.json();
-        console.log(data);
+        const video = await vid.json();
+
+        setVideo(video.videoURL);
         setSummary(data.gptSummary);
         setRecommendation(data.gptRecommendation);
       } catch (e) {
@@ -49,19 +55,7 @@ export default function Page({params}: {params: {id: string}}) {
             <span className="font-bold">Category:</span>
             &nbsp;{"4A"}
           </p>
-          <video
-            style={{
-              transform: "scaleX(-1)",
-              width: "100%",
-              objectFit: "fill",
-              height: "422px",
-              margin: 0,
-            }}
-            // ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-          />
+          <video src={video} width="750" height="500" controls></video>
         </div>
 
         {/* Summary  */}

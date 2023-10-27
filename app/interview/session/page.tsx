@@ -7,6 +7,7 @@ import {useContext, useEffect, useRef, useState} from "react";
 import Script from "next/script";
 import {FinishInterviewContext} from "@/components/finishInterviewComponent";
 import {useRouter} from "next/navigation";
+import {useReactMediaRecorder} from "react-media-recorder";
 
 export default function Page() {
   const router = useRouter();
@@ -16,9 +17,48 @@ export default function Page() {
   const [question, setQuestion] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
 
+  const [start, setStart] = useState(false);
+  const [count, setCount] = useState(0);
+  const [time, setTime] = useState("00:00:00");
+
   const azureSubscriptionKey = "3cf9ad70a16f4a2b9383e201129b9ef0";
   const azureServiceRegion = "eastus";
   const uuid = useRef<string>("");
+
+  const {startRecording, stopRecording, mediaBlobUrl} = useReactMediaRecorder({
+    screen: true,
+    audio: true,
+  });
+
+  var initTime = new Date();
+
+  const showTimer = (ms: number) => {
+    // const milliseconds = Math.floor((ms % 1000) / 10)
+    //   .toString()
+    //   .padStart(2, "0");
+    const second = Math.floor((ms / 1000) % 60)
+      .toString()
+      .padStart(2, "0");
+    const minute = Math.floor((ms / 1000 / 60) % 60)
+      .toString()
+      .padStart(2, "0");
+    const hour = Math.floor(ms / 1000 / 60 / 60).toString();
+    setTime(hour.padStart(2, "0") + ":" + minute + ":" + second);
+  };
+
+  useEffect(() => {
+    var id = setInterval(() => {
+      var left = count + (new Date().getTime() - initTime.getTime());
+      console.log(left);
+      setCount(left);
+      showTimer(left);
+      if (left <= 0) {
+        setTime("00:00:00:00");
+        clearInterval(id);
+      }
+    }, 1);
+    return () => clearInterval(id);
+  }, []);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -71,10 +111,6 @@ export default function Page() {
     }
   };
 
-  useEffect(() => {
-    startCamera();
-  }, []);
-
   function uuidv4() {
     return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c: any) =>
       (
@@ -101,6 +137,8 @@ export default function Page() {
       }
     };
     init();
+    startCamera();
+    startRecording();
   }, []);
 
   const submitAnswer = async (answer: string) => {
@@ -128,6 +166,26 @@ export default function Page() {
     }
   };
 
+  const finishInterview = async (file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch(
+        `
+      ${KEY.baseUrl}/ChatGPT/Finish?customapikey=${KEY.customapikey}&GUIDSession=${uuid.current}
+      `,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+    } catch (e) {
+      console.log(e);
+    } finally {
+      router.push("/report/" + uuid.current);
+    }
+  };
+
   const transcribe = async () => {
     const audioLink = document.getElementsByTagName("audio")[0];
     if (audioLink) {
@@ -140,6 +198,30 @@ export default function Page() {
       const file = new File([blob], "test.wav");
       const transcription = await handleTranscription(file);
       await submitAnswer(transcription || "");
+    }
+  };
+
+  const fetchCapturedScreenURL = async () => {
+    if (mediaBlobUrl) {
+      const res = await fetch(mediaBlobUrl);
+      const blob = await res.blob();
+
+      const file = new File([blob], "screen-recorded");
+      return file;
+    }
+    return;
+  };
+
+  const handleCloseInterview = async () => {
+    try {
+      stopRecording();
+      const file = await fetchCapturedScreenURL();
+      if (file) {
+        // window.open(mediaBlobUrl!, "_blank")?.focus();
+        await finishInterview(file);
+      }
+    } catch (e) {
+      console.log(e);
     }
   };
 
@@ -158,9 +240,7 @@ export default function Page() {
           className="absolute flex gap-2 items-center justify-center right-[66px] w-[150px] h-[42px] bg-blackBlur rounded"
         >
           <div className="rounded-full w-4 h-4 bg-danger"></div>
-          <p className="font-bold text-white text-center text-[20px]">
-            {"00:00:06"}
-          </p>
+          <p className="font-bold text-white text-center text-[20px]">{time}</p>
         </div>
       </div>
       {/* Main Interview */}
@@ -214,7 +294,9 @@ export default function Page() {
             width="250px"
             height="44px"
             id={"recordButton"}
-            onClick={() => setIsAnswering(true)}
+            onClick={() => {
+              setIsAnswering(true);
+            }}
             className={`${
               finishInterviewContext?.isFinish
                 ? "hidden"
@@ -230,7 +312,9 @@ export default function Page() {
             width="250px"
             height="44px"
             id="stopButton"
-            onClick={() => setIsAnswering(false)}
+            onClick={() => {
+              setIsAnswering(false);
+            }}
             className={`${
               finishInterviewContext?.isFinish
                 ? "hidden"
@@ -245,15 +329,18 @@ export default function Page() {
             label={"Close Interview"}
             width="250px"
             height="44px"
-            onClick={() => {
-              router.push("/report/" + uuid.current);
-            }}
+            onClick={handleCloseInterview}
             className={`${
               finishInterviewContext?.isFinish ? "block" : "hidden"
             }`}
           />
         </div>
       </div>
+      {/* <button onClick={startRecording}>Start Capture</button>
+      <button onClick={stopRecording}>Stop Capture</button>
+      <button onClick={() => window.open(mediaBlobUrl!, "_blank")?.focus()}>
+        View Captured
+      </button> */}
       <button className="hidden" id="transcribe" onClick={transcribe}>
         Transcribe
       </button>{" "}
