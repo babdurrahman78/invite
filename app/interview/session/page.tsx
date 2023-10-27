@@ -16,8 +16,13 @@ export default function Page() {
   const [index, setIndex] = useState(1);
   const [question, setQuestion] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingSubmit, setIsLoadingSubmit] = useState(false);
 
-  const [start, setStart] = useState(false);
+  // state for answer time
+  const [limitTimeAnswer, setLimitTimeAnswer] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  // state for interview duration
   const [count, setCount] = useState(0);
   const [time, setTime] = useState("00:00:00");
 
@@ -49,7 +54,6 @@ export default function Page() {
   useEffect(() => {
     var id = setInterval(() => {
       var left = count + (new Date().getTime() - initTime.getTime());
-      console.log(left);
       setCount(left);
       showTimer(left);
       if (left <= 0) {
@@ -213,6 +217,7 @@ export default function Page() {
   };
 
   const handleCloseInterview = async () => {
+    setIsLoadingSubmit(true);
     try {
       stopRecording();
       const file = await fetchCapturedScreenURL();
@@ -223,7 +228,39 @@ export default function Page() {
     } catch (e) {
       console.log(e);
     }
+    setIsLoadingSubmit(false);
   };
+
+  const startAnswer = () => {
+    setIsAnswering(true);
+
+    // in ms
+    setLimitTimeAnswer(new Date().getTime());
+  };
+
+  const stopAnswer = () => {
+    setIsAnswering(false);
+    setProgress(0);
+  };
+
+  useEffect(() => {
+    if (isAnswering) {
+      var id = setInterval(() => {
+        const tempProgress = Math.floor(
+          ((new Date().getTime() - limitTimeAnswer) / 180000) * 100
+        );
+        setProgress(tempProgress);
+        console.log(tempProgress);
+        if (tempProgress === 100) {
+          setIsAnswering(false);
+          setProgress(0);
+          const stopButton = document.getElementById("stopButton");
+          stopButton?.click();
+        }
+      }, 1000);
+    }
+    return () => clearInterval(id);
+  }, [isAnswering]);
 
   return (
     <div className="mt-[64px] flex flex-col gap-6 ">
@@ -274,19 +311,37 @@ export default function Page() {
             isAnswering ? "w-[60%]" : "w-[50%]"
           } flex flex-col items-center gap-6`}
         >
-          <video
-            style={{
-              transform: "scaleX(-1)",
-              width: "100%",
-              objectFit: "fill",
-              height: "422px",
-              margin: 0,
-            }}
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-          />
+          <div className="relative">
+            <video
+              style={{
+                transform: "scaleX(-1)",
+                width: "100%",
+                objectFit: "fill",
+                height: "422px",
+                margin: 0,
+              }}
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+            />
+
+            <div className="flex w-full overflow-visible bg-[#696969] items-center h-[5px]">
+              <div
+                style={{
+                  width: `${progress}%`,
+                }}
+                className={`h-[5px] bg-red-600`}
+              ></div>
+              {/* <div className="rounded-full w-[10px] -mt-[5px] h-[10px] -ml-[5px] bg-red-600"></div> */}
+              <div
+                style={{
+                  width: `${100 - progress}%`,
+                }}
+                className={`h-[5px]`}
+              ></div>
+            </div>
+          </div>
 
           <Button
             type={"primary"}
@@ -294,9 +349,7 @@ export default function Page() {
             width="250px"
             height="44px"
             id={"recordButton"}
-            onClick={() => {
-              setIsAnswering(true);
-            }}
+            onClick={startAnswer}
             className={`${
               finishInterviewContext?.isFinish
                 ? "hidden"
@@ -312,9 +365,7 @@ export default function Page() {
             width="250px"
             height="44px"
             id="stopButton"
-            onClick={() => {
-              setIsAnswering(false);
-            }}
+            onClick={stopAnswer}
             className={`${
               finishInterviewContext?.isFinish
                 ? "hidden"
@@ -329,6 +380,7 @@ export default function Page() {
             label={"Close Interview"}
             width="250px"
             height="44px"
+            disabled={loadingSubmit}
             onClick={handleCloseInterview}
             className={`${
               finishInterviewContext?.isFinish ? "block" : "hidden"
@@ -336,11 +388,6 @@ export default function Page() {
           />
         </div>
       </div>
-      {/* <button onClick={startRecording}>Start Capture</button>
-      <button onClick={stopRecording}>Stop Capture</button>
-      <button onClick={() => window.open(mediaBlobUrl!, "_blank")?.focus()}>
-        View Captured
-      </button> */}
       <button className="hidden" id="transcribe" onClick={transcribe}>
         Transcribe
       </button>{" "}
