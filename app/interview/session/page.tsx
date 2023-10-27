@@ -311,7 +311,7 @@ export default function Page() {
             isAnswering ? "w-[60%]" : "w-[50%]"
           } flex flex-col items-center gap-6`}
         >
-          <div className="relative">
+          <div className="relative w-full">
             <video
               style={{
                 transform: "scaleX(-1)",
@@ -326,7 +326,7 @@ export default function Page() {
               muted
             />
 
-            <div className="flex w-full overflow-visible bg-[#696969] items-center h-[5px]">
+            <div className="flex w-full bg-[#696969] items-center h-[5px]">
               <div
                 style={{
                   width: `${progress}%`,
