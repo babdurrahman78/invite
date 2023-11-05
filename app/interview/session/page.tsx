@@ -350,10 +350,10 @@ export default function Page() {
             id={"recordButton"}
             onClick={startAnswer}
             className={`${finishInterviewContext?.isFinish
-                ? "hidden"
-                : !isAnswering
-                  ? "block"
-                  : "hidden"
+              ? "hidden"
+              : !isAnswering
+                ? "block"
+                : "hidden"
               }`}
           />
 
@@ -365,23 +365,25 @@ export default function Page() {
             id="stopButton"
             onClick={stopAnswer}
             className={`${finishInterviewContext?.isFinish
-                ? "hidden"
-                : isAnswering
-                  ? "block"
-                  : "hidden"
+              ? "hidden"
+              : isAnswering
+                ? "block"
+                : "hidden"
               }`}
           />
 
-          <Button
-            type={"danger"}
-            label={"Close Interview"}
-            width="250px"
-            height="44px"
-            disabled={loadingSubmit}
-            onClick={handleCloseInterview}
-            className={`${finishInterviewContext?.isFinish ? "block" : "hidden"
-              }`}
-          />
+          <a href={`http://localhost:3000/report/${uuid.current}`} target="_blank" className={`${finishInterviewContext?.isFinish ? "block" : "hidden"
+            }`}>
+            <Button
+              type={"danger"}
+              label={"Close Interview"}
+              width="250px"
+              height="44px"
+              disabled={loadingSubmit}
+              onClick={handleCloseInterview}
+
+            />
+          </a>
         </div>
       </div>
       <button className="hidden" id="transcribe" onClick={transcribe}>
