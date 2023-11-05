@@ -3,11 +3,11 @@
 import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 import Image from "next/image";
 import Button from "@/components/common/Button";
-import {useContext, useEffect, useRef, useState} from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Script from "next/script";
-import {FinishInterviewContext} from "@/components/finishInterviewComponent";
-import {useRouter} from "next/navigation";
-import {useReactMediaRecorder} from "react-media-recorder";
+import { FinishInterviewContext } from "@/components/finishInterviewComponent";
+import { useRouter } from "next/navigation";
+import { useReactMediaRecorder } from "react-media-recorder";
 
 export default function Page() {
   const router = useRouter();
@@ -30,7 +30,7 @@ export default function Page() {
   const azureServiceRegion = "eastus";
   const uuid = useRef<string>("");
 
-  const {startRecording, stopRecording, mediaBlobUrl} = useReactMediaRecorder({
+  const { startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({
     screen: true,
     audio: true,
   });
@@ -106,7 +106,7 @@ export default function Page() {
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({video: true});
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
@@ -221,6 +221,7 @@ export default function Page() {
     try {
       stopRecording();
       const file = await fetchCapturedScreenURL();
+      router.push("/interview/session/thank");
       if (file) {
         // window.open(mediaBlobUrl!, "_blank")?.focus();
         await finishInterview(file);
@@ -284,9 +285,8 @@ export default function Page() {
       <div className="flex gap-[27px] justify-center min-[1440px]:px-[66px]">
         {/* Question  */}
         <div
-          className={`rounded-lg ${
-            isAnswering ? "w-[40%]" : "w-[50%]"
-          } relative flex  h-[422px] bg-content py-[32px] px-[29px]`}
+          className={`rounded-lg ${isAnswering ? "w-[40%]" : "w-[50%]"
+            } relative flex  h-[422px] bg-content py-[32px] px-[29px]`}
         >
           {!isAnswering && (
             <Image
@@ -307,9 +307,8 @@ export default function Page() {
 
         {/* Video  */}
         <div
-          className={`rounded-lg ${
-            isAnswering ? "w-[60%]" : "w-[50%]"
-          } flex flex-col items-center gap-6`}
+          className={`rounded-lg ${isAnswering ? "w-[60%]" : "w-[50%]"
+            } flex flex-col items-center gap-6`}
         >
           <div className="relative w-full">
             <video
@@ -350,13 +349,12 @@ export default function Page() {
             height="44px"
             id={"recordButton"}
             onClick={startAnswer}
-            className={`${
-              finishInterviewContext?.isFinish
+            className={`${finishInterviewContext?.isFinish
                 ? "hidden"
                 : !isAnswering
-                ? "block"
-                : "hidden"
-            }`}
+                  ? "block"
+                  : "hidden"
+              }`}
           />
 
           <Button
@@ -366,13 +364,12 @@ export default function Page() {
             height="44px"
             id="stopButton"
             onClick={stopAnswer}
-            className={`${
-              finishInterviewContext?.isFinish
+            className={`${finishInterviewContext?.isFinish
                 ? "hidden"
                 : isAnswering
-                ? "block"
-                : "hidden"
-            }`}
+                  ? "block"
+                  : "hidden"
+              }`}
           />
 
           <Button
@@ -382,9 +379,8 @@ export default function Page() {
             height="44px"
             disabled={loadingSubmit}
             onClick={handleCloseInterview}
-            className={`${
-              finishInterviewContext?.isFinish ? "block" : "hidden"
-            }`}
+            className={`${finishInterviewContext?.isFinish ? "block" : "hidden"
+              }`}
           />
         </div>
       </div>
