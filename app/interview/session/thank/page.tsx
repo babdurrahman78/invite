@@ -9,7 +9,7 @@ export default function Page() {
             backgroundColor: "rgba(217, 217, 217, 0.35)"
         }} className="w-[685px] h-[176px] rounded-[20px] p-[25px]">
             <p className="text-[22px] text-center">
-                We truly appreciate your participation, and we're delighted to have had the chance to get to know you. We hope this opportunity opens doors to a successful career within our company. See you in the future!
+                {"We truly appreciate your participation, and we're delighted to have had the chance to get to know you. We hope this opportunity opens doors to a successful career within our company. See you in the future!"}
             </p>
         </div>
     </div>
