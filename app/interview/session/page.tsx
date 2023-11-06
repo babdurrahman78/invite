@@ -8,6 +8,7 @@ import Script from "next/script";
 import { FinishInterviewContext } from "@/components/finishInterviewComponent";
 import { useRouter } from "next/navigation";
 import { useReactMediaRecorder } from "react-media-recorder";
+import Link from "next/link";
 
 export default function Page() {
   const router = useRouter();
@@ -82,7 +83,6 @@ export default function Page() {
 
       const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
       recognizer.recognizeOnceAsync(result => {
-        console.log(result);
         if (result.reason === sdk.ResultReason.RecognizedSpeech) {
           const transcription = result.text;
           console.log(transcription);
@@ -147,7 +147,6 @@ export default function Page() {
 
   const submitAnswer = async (answer: string) => {
     try {
-      setIsLoading(true);
       const res = await fetch(
         `${KEY.baseUrl}/ChatGPT/Chat?customapikey=${KEY.customapikey}&GUIDSession=${uuid.current}`,
         {
@@ -240,6 +239,7 @@ export default function Page() {
   };
 
   const stopAnswer = () => {
+    setIsLoading(true);
     setIsAnswering(false);
     setProgress(0);
   };
@@ -372,7 +372,7 @@ export default function Page() {
               }`}
           />
 
-          <a href={`http://localhost:3000/report/${uuid.current}`} target="_blank" className={`${finishInterviewContext?.isFinish ? "block" : "hidden"
+          <Link href={`/report/${uuid.current}`} target="_blank" className={`${finishInterviewContext?.isFinish ? "block" : "hidden"
             }`}>
             <Button
               type={"danger"}
@@ -383,7 +383,7 @@ export default function Page() {
               onClick={handleCloseInterview}
 
             />
-          </a>
+          </Link>
         </div>
       </div>
       <button className="hidden" id="transcribe" onClick={transcribe}>
