@@ -19,6 +19,8 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingSubmit, setIsLoadingSubmit] = useState(false);
   const [isClosed, setIsClosed] = useState(false)
+  const [recordingStatus, setRecordingStatus] = useState<'RECORDING' | 'IDLE'>('IDLE')
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
 
   // state for answer time
   const [limitTimeAnswer, setLimitTimeAnswer] = useState(0);
@@ -74,9 +76,7 @@ export default function Page() {
   };
   async function transcribeAudio(audioFile: File): Promise<string> {
     return new Promise((resolve, reject) => {
-      console.log(audioFile);
       const audioConfig = sdk.AudioConfig.fromWavFileInput(audioFile);
-      console.log(audioConfig);
       const speechConfig = sdk.SpeechConfig.fromSubscription(
         azureSubscriptionKey,
         azureServiceRegion
@@ -108,11 +108,19 @@ export default function Page() {
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      setCameraStream(stream);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
     } catch (error) {
       console.error("Error accessing the camera:", error);
+    }
+  };
+
+  const stopDisplayingCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach((track) => track.stop());
+      setCameraStream(null); // Clear the camera stream from the state
     }
   };
 
@@ -231,6 +239,7 @@ export default function Page() {
       console.log(e);
     }
     setIsLoadingSubmit(false);
+    stopDisplayingCamera()
   };
 
   useEffect(() => {
