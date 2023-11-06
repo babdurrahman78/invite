@@ -18,6 +18,7 @@ export default function Page() {
   const [question, setQuestion] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
   const [loadingSubmit, setIsLoadingSubmit] = useState(false);
+  const [isClosed, setIsClosed] = useState(false)
 
   // state for answer time
   const [limitTimeAnswer, setLimitTimeAnswer] = useState(0);
@@ -184,8 +185,6 @@ export default function Page() {
       );
     } catch (e) {
       console.log(e);
-    } finally {
-      router.push("/report/" + uuid.current);
     }
   };
 
@@ -200,7 +199,12 @@ export default function Page() {
 
       const file = new File([blob], "test.wav");
       const transcription = await handleTranscription(file);
-      await submitAnswer(transcription || "");
+      if (!!transcription) {
+        await submitAnswer(transcription);
+      } else {
+        setIsLoading(false);
+        setQuestion("Sorry John, I didn't quite catch that. Would you like me to repeat the question?")
+      }
     }
   };
 
@@ -218,11 +222,9 @@ export default function Page() {
   const handleCloseInterview = async () => {
     setIsLoadingSubmit(true);
     try {
-      stopRecording();
       const file = await fetchCapturedScreenURL();
-      router.push("/interview/session/thank");
+      setIsClosed(true)
       if (file) {
-        // window.open(mediaBlobUrl!, "_blank")?.focus();
         await finishInterview(file);
       }
     } catch (e) {
@@ -230,6 +232,12 @@ export default function Page() {
     }
     setIsLoadingSubmit(false);
   };
+
+  useEffect(() => {
+    if (finishInterviewContext?.isFinish) {
+      stopRecording();
+    }
+  }, [finishInterviewContext?.isFinish])
 
   const startAnswer = () => {
     setIsAnswering(true);
@@ -264,134 +272,150 @@ export default function Page() {
   }, [isAnswering]);
 
   return (
-    <div className="mt-[64px] flex flex-col gap-6 ">
-      {/* Title */}
-      <div className="flex justify-center relative ">
-        <p className="text-[28px] leading-[34px] text-primaryDarker text-center font-bold">
-          Interview Session
-        </p>
+    <div>
+      <div className={`mt-[64px] flex flex-col gap-6 ${isClosed ? 'hidden' : 'block'}`}>
+        {/* Title */}
+        <div className="flex justify-center relative ">
+          <p className="text-[28px] leading-[34px] text-primaryDarker text-center font-bold">
+            Interview Session
+          </p>
 
-        <div
-          style={{
-            backdropFilter: "blur(4px)",
-          }}
-          className="absolute flex gap-2 items-center justify-center right-[66px] w-[150px] h-[42px] bg-blackBlur rounded"
-        >
-          <div className="rounded-full w-4 h-4 bg-danger"></div>
-          <p className="font-bold text-white text-center text-[20px]">{time}</p>
-        </div>
-      </div>
-      {/* Main Interview */}
-      <div className="flex gap-[27px] justify-center min-[1440px]:px-[66px]">
-        {/* Question  */}
-        <div
-          className={`rounded-lg ${isAnswering ? "w-[40%]" : "w-[50%]"
-            } relative flex  h-[422px] bg-content py-[32px] px-[29px]`}
-        >
-          {!isAnswering && (
-            <Image
-              className="absolute -left-12 -top-12"
-              src={"/vivi.png"}
-              alt="vivi.png"
-              width={300}
-              height={800}
-            />
-          )}
-          <div className={`${!isAnswering && "ml-[200px]"} overflow-auto`}>
-            <p className="text-[20px] leading-[34px] text-primaryDarker font-bold">
-              {`Question ${index}`}
-            </p>
-            <p className="mt-[25px]">{isLoading ? `. . .` : question}</p>
+          <div
+            style={{
+              backdropFilter: "blur(4px)",
+            }}
+            className="absolute flex gap-2 items-center justify-center right-[66px] w-[150px] h-[42px] bg-blackBlur rounded"
+          >
+            <div className="rounded-full w-4 h-4 bg-danger"></div>
+            <p className="font-bold text-white text-center text-[20px]">{time}</p>
           </div>
         </div>
-
-        {/* Video  */}
-        <div
-          className={`rounded-lg ${isAnswering ? "w-[60%]" : "w-[50%]"
-            } flex flex-col items-center gap-6`}
-        >
-          <div className="relative w-full">
-            <video
-              style={{
-                transform: "scaleX(-1)",
-                width: "100%",
-                objectFit: "fill",
-                height: "422px",
-                margin: 0,
-              }}
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-            />
-
-            <div className="flex w-full bg-[#696969] items-center h-[5px]">
-              <div
-                style={{
-                  width: `${progress}%`,
-                }}
-                className={`h-[5px] bg-red-600`}
-              ></div>
-              {/* <div className="rounded-full w-[10px] -mt-[5px] h-[10px] -ml-[5px] bg-red-600"></div> */}
-              <div
-                style={{
-                  width: `${100 - progress}%`,
-                }}
-                className={`h-[5px]`}
-              ></div>
+        {/* Main Interview */}
+        <div className="flex gap-[27px] justify-center min-[1440px]:px-[66px]">
+          {/* Question  */}
+          <div
+            className={`rounded-lg ${isAnswering ? "w-[40%]" : "w-[50%]"
+              } relative flex  h-[422px] bg-content py-[32px] px-[29px]`}
+          >
+            {!isAnswering && (
+              <Image
+                className="absolute -left-12 -top-12"
+                src={"/vivi.png"}
+                alt="vivi.png"
+                width={300}
+                height={800}
+              />
+            )}
+            <div className={`${!isAnswering && "ml-[200px]"} overflow-auto`}>
+              <p className="text-[20px] leading-[34px] text-primaryDarker font-bold">
+                {`Question ${index}`}
+              </p>
+              <p className="mt-[25px]">{isLoading ? `. . .` : question}</p>
             </div>
           </div>
 
-          <Button
-            type={"primary"}
-            label={"Start Answser"}
-            width="250px"
-            height="44px"
-            id={"recordButton"}
-            onClick={startAnswer}
-            className={`${finishInterviewContext?.isFinish
-              ? "hidden"
-              : !isAnswering
-                ? "block"
-                : "hidden"
-              }`}
-          />
+          {/* Video  */}
+          <div
+            className={`rounded-lg ${isAnswering ? "w-[60%]" : "w-[50%]"
+              } flex flex-col items-center gap-6`}
+          >
+            <div className="relative w-full">
+              <video
+                style={{
+                  transform: "scaleX(-1)",
+                  width: "100%",
+                  objectFit: "fill",
+                  height: "422px",
+                  margin: 0,
+                }}
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+              />
 
-          <Button
-            type={"danger"}
-            label={"Answer Complete"}
-            width="250px"
-            height="44px"
-            id="stopButton"
-            onClick={stopAnswer}
-            className={`${finishInterviewContext?.isFinish
-              ? "hidden"
-              : isAnswering
-                ? "block"
-                : "hidden"
-              }`}
-          />
+              <div className="flex w-full bg-[#696969] items-center h-[5px]">
+                <div
+                  style={{
+                    width: `${progress}%`,
+                  }}
+                  className={`h-[5px] bg-red-600`}
+                ></div>
+                {/* <div className="rounded-full w-[10px] -mt-[5px] h-[10px] -ml-[5px] bg-red-600"></div> */}
+                <div
+                  style={{
+                    width: `${100 - progress}%`,
+                  }}
+                  className={`h-[5px]`}
+                ></div>
+              </div>
+            </div>
 
-          <Link href={`/report/${uuid.current}`} target="_blank" className={`${finishInterviewContext?.isFinish ? "block" : "hidden"
-            }`}>
             <Button
-              type={"danger"}
-              label={"Close Interview"}
+              type={"primary"}
+              label={"Start Answser"}
               width="250px"
               height="44px"
-              disabled={loadingSubmit}
-              onClick={handleCloseInterview}
-
+              id={"recordButton"}
+              onClick={startAnswer}
+              className={`${finishInterviewContext?.isFinish
+                ? "hidden"
+                : !isAnswering
+                  ? "block"
+                  : "hidden"
+                }`}
             />
-          </Link>
+
+            <Button
+              type={"danger"}
+              label={"Answer Complete"}
+              width="250px"
+              height="44px"
+              id="stopButton"
+              onClick={stopAnswer}
+              className={`${finishInterviewContext?.isFinish
+                ? "hidden"
+                : isAnswering
+                  ? "block"
+                  : "hidden"
+                }`}
+            />
+
+            <Link href={`/report/${uuid.current}`} target="_blank" >
+              <Button
+                type={"danger"}
+                label={"Close Interview"}
+                width="250px"
+                height="44px"
+                disabled={loadingSubmit}
+                onClick={handleCloseInterview}
+                className={`${finishInterviewContext?.isFinish ? "block" : "hidden"
+                  }`}
+              />
+            </Link>
+          </div>
+        </div>
+        <button className="hidden" id="transcribe" onClick={transcribe}>
+          Transcribe
+        </button>{" "}
+      </div>
+      <div className={`flex flex-col items-center pt-[195px] ${isClosed ? 'block' : 'hidden'}`}>
+        <p className="font-bold text-[36px] text-primaryDarker mb-[42px]">
+          Thank you for joining the interview session!
+        </p>
+
+        <div style={{
+          boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)",
+          backgroundColor: "rgba(217, 217, 217, 0.35)"
+        }} className="w-[685px] h-[176px] rounded-[20px] p-[25px]">
+          <p className="text-[22px] text-center">
+            {"We truly appreciate your participation, and we're delighted to have had the chance to get to know you. We hope this opportunity opens doors to a successful career within our company. See you in the future!"}
+          </p>
         </div>
       </div>
-      <button className="hidden" id="transcribe" onClick={transcribe}>
-        Transcribe
-      </button>{" "}
       <ol className="hidden" id="recordingsList"></ol>
       <Script src="/recorder.js" async />
       <Script src="/enabler.js" />
     </div>
-  );
+  )
 }
