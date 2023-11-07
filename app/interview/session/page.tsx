@@ -28,7 +28,7 @@ export default function Page() {
 
   // state for interview duration
   const [count, setCount] = useState(0);
-  const [time, setTime] = useState("00:00:00");
+  const [time, setTime] = useState(0);
 
   const azureSubscriptionKey = "3cf9ad70a16f4a2b9383e201129b9ef0";
   const azureServiceRegion = "eastus";
@@ -46,27 +46,25 @@ export default function Page() {
     //   .toString()
     //   .padStart(2, "0");
     const second = Math.floor((ms / 1000) % 60)
-      .toString()
-      .padStart(2, "0");
-    const minute = Math.floor((ms / 1000 / 60) % 60)
-      .toString()
-      .padStart(2, "0");
-    const hour = Math.floor(ms / 1000 / 60 / 60).toString();
-    setTime(hour.padStart(2, "0") + ":" + minute + ":" + second);
+    // const minute = Math.floor((ms / 1000 / 60) % 60)
+    //   .toString()
+    //   .padStart(2, "0");
+    // const hour = Math.floor(ms / 1000 / 60 / 60).toString();
+    // setTime(second);
   };
 
-  useEffect(() => {
-    var id = setInterval(() => {
-      var left = count + (new Date().getTime() - initTime.getTime());
-      setCount(left);
-      showTimer(left);
-      if (left <= 0) {
-        setTime("00:00:00:00");
-        clearInterval(id);
-      }
-    }, 1);
-    return () => clearInterval(id);
-  }, []);
+  // useEffect(() => {
+  //   var id = setInterval(() => {
+  //     var left = count + (new Date().getTime() - initTime.getTime());
+  //     setCount(left);
+  //     showTimer(left);
+  //     if (left <= 0) {
+  //       setTime(0);
+  //       clearInterval(id);
+  //     }
+  //   }, 1);
+  //   return () => clearInterval(id);
+  // }, []);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -265,11 +263,12 @@ export default function Page() {
     if (isAnswering) {
       var id = setInterval(() => {
         const tempProgress = Math.floor(
-          ((new Date().getTime() - limitTimeAnswer) / 180000) * 100
+          ((new Date().getTime() / 1000) - (limitTimeAnswer / 1000))
         );
         setProgress(tempProgress);
         console.log(tempProgress);
-        if (tempProgress === 100) {
+
+        if (tempProgress === 180) {
           setIsAnswering(false);
           setProgress(0);
           const stopButton = document.getElementById("stopButton");
@@ -293,10 +292,10 @@ export default function Page() {
             style={{
               backdropFilter: "blur(4px)",
             }}
-            className="absolute flex gap-2 items-center justify-center right-[66px] w-[150px] h-[42px] bg-blackBlur rounded"
+            className="absolute flex gap-2 items-center justify-center right-[66px] w-[100px] h-[42px] bg-blackBlur rounded"
           >
             <div className="rounded-full w-4 h-4 bg-danger"></div>
-            <p className="font-bold text-white text-center text-[20px]">{time}</p>
+            <p className="font-bold text-white text-center text-[20px]">{"REC"}</p>
           </div>
         </div>
         {/* Main Interview */}
@@ -343,21 +342,6 @@ export default function Page() {
                 muted
               />
 
-              <div className="flex w-full bg-[#696969] items-center h-[5px]">
-                <div
-                  style={{
-                    width: `${progress}%`,
-                  }}
-                  className={`h-[5px] bg-red-600`}
-                ></div>
-                {/* <div className="rounded-full w-[10px] -mt-[5px] h-[10px] -ml-[5px] bg-red-600"></div> */}
-                <div
-                  style={{
-                    width: `${100 - progress}%`,
-                  }}
-                  className={`h-[5px]`}
-                ></div>
-              </div>
             </div>
 
             <Button
@@ -377,7 +361,7 @@ export default function Page() {
 
             <Button
               type={"danger"}
-              label={"Answer Complete"}
+              label={`Answer Complete (${180 - progress})`}
               width="250px"
               height="44px"
               id="stopButton"
