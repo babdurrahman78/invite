@@ -1,22 +1,25 @@
 import Image from "next/image";
 import Button from "../common/Button";
-import {IStep} from "@/interfaces/common";
-import React, {useEffect, useRef, useState} from "react";
+import { IStep } from "@/interfaces/common";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
-export default function Step5({step, setStep}: IStep): JSX.Element {
+export default function Step5({ step, setStep }: IStep): JSX.Element {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [permissionState, setPermissionState] =
     useState<PermissionState | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isMicOn, setIsMicOn] = useState(false);
 
+  const [camera, setCamera] = useState<MediaStream | null>(null);
+
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({video: true});
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
+      setCamera(stream)
     } catch (error) {
       console.error("Error accessing the camera:", error);
     }
@@ -111,18 +114,14 @@ export default function Step5({step, setStep}: IStep): JSX.Element {
     };
   }, [isMicOn]);
 
-  useEffect(() => {
-    // navigator.permissions.query({ name: 'camera' as PermissionName }).then((permissionStatus) => {
-    //     setPermissionState(permissionStatus.state);
-    //     permissionStatus.onchange = () => {
-    //         console.log(permissionStatus)
-    //         setPermissionState(permissionStatus.state);
-    //         if (permissionStatus.state === 'granted') {
-    //             startCamera(); // Call startCamera when permission is granted.
-    //         }
-    //     };
-    // });
+  const stopDisplayingCamera = () => {
+    if (camera) {
+      camera.getTracks().forEach((track) => track.stop());
+      setCamera(null); // Clear the camera stream from the state
+    }
+  }
 
+  useEffect(() => {
     startCamera();
   }, []);
 
@@ -131,7 +130,7 @@ export default function Step5({step, setStep}: IStep): JSX.Element {
       <div className="w-[866px] h-[433px] relative bg-black rounded-[8px]">
         {
           <video
-            style={{width: "100%", height: "433px", transform: "scaleX(-1)"}}
+            style={{ width: "100%", height: "433px", transform: "scaleX(-1)" }}
             ref={videoRef}
             autoPlay
             playsInline
@@ -190,6 +189,7 @@ export default function Step5({step, setStep}: IStep): JSX.Element {
             width="278px"
             height="44px"
             type="primary"
+            onClick={stopDisplayingCamera}
             label={
               <div className="flex items-center justify-center gap-[4px]">
                 <p>Start the Interview Session</p>
