@@ -19,4 +19,8 @@ export const INTERVIEW_PREPARATION = [
     welcome: null,
     title: "Camera and Microphone Check",
   },
+  {
+    welcome: null,
+    title: "Screen Record Permission"
+  }
 ];

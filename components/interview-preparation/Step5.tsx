@@ -116,8 +116,11 @@ export default function Step5({ step, setStep }: IStep): JSX.Element {
 
   const stopDisplayingCamera = () => {
     if (camera) {
+      console.log(camera)
       camera.getTracks().forEach((track) => track.stop());
+      console.log(camera)
       setCamera(null); // Clear the camera stream from the state
+      setStep(step + 1)
     }
   }
 
@@ -184,19 +187,20 @@ export default function Step5({ step, setStep }: IStep): JSX.Element {
             </div>
           }
         />
-        <Link href={"/interview/session"}>
-          <Button
-            width="278px"
-            height="44px"
-            type="primary"
-            onClick={stopDisplayingCamera}
-            label={
-              <div className="flex items-center justify-center gap-[4px]">
-                <p>Start the Interview Session</p>
-              </div>
-            }
-          />
-        </Link>
+        <Button
+          width="278px"
+          height="44px"
+          type="primary"
+          onClick={() => {
+            stopDisplayingCamera()
+
+          }}
+          label={
+            <div className="flex items-center justify-center gap-[4px]">
+              <p>Next</p>
+            </div>
+          }
+        />
       </div>
     </div>
   );

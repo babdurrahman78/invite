@@ -9,10 +9,12 @@ import { FinishInterviewContext } from "@/components/finishInterviewComponent";
 import { useRouter } from "next/navigation";
 import { useReactMediaRecorder } from "react-media-recorder";
 import Link from "next/link";
+import { RecordingContext } from "@/components/recordingContext";
 
 export default function Page() {
   const router = useRouter();
   const finishInterviewContext = useContext(FinishInterviewContext);
+  const recrodingContext = useContext(RecordingContext)
   const [isAnswering, setIsAnswering] = useState(false);
   const [index, setIndex] = useState(1);
   const [question, setQuestion] = useState<string>();
@@ -34,10 +36,11 @@ export default function Page() {
   const azureServiceRegion = "eastus";
   const uuid = useRef<string>("");
 
-  const { startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({
-    screen: true,
-    audio: true,
-  });
+  // const { startRecording, stopRecording, mediaBlobUrl, } = useReactMediaRecorder({
+  //   screen: true,
+  //   audio: true,
+  //   askPermissionOnMount: false,
+  // });
 
   var initTime = new Date();
 
@@ -149,7 +152,7 @@ export default function Page() {
     };
     init();
     startCamera();
-    startRecording();
+    // startRecording();
   }, []);
 
   const submitAnswer = async (answer: string) => {
@@ -215,8 +218,8 @@ export default function Page() {
   };
 
   const fetchCapturedScreenURL = async () => {
-    if (mediaBlobUrl) {
-      const res = await fetch(mediaBlobUrl);
+    if (recrodingContext?.mediaBlobUrl) {
+      const res = await fetch(recrodingContext.mediaBlobUrl);
       const blob = await res.blob();
 
       const file = new File([blob], "screen-recorded");
@@ -242,7 +245,7 @@ export default function Page() {
 
   useEffect(() => {
     if (finishInterviewContext?.isFinish) {
-      stopRecording();
+      recrodingContext?.stopRecording();
     }
   }, [finishInterviewContext?.isFinish])
 
