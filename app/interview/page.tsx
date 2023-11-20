@@ -41,7 +41,7 @@ export default function Page() {
     } else if (step + 1 === 5) {
       return <Step5 step={step} setStep={setStep} />;
     } else if (step + 1 === 6) {
-      return <Step6 step={step} setStep={setStep} />
+      return <Step6 />
     }
   };
   return (
