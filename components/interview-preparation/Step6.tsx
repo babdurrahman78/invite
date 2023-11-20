@@ -31,19 +31,19 @@ export default function Step6() {
                 </p>
 
                 <ol className="list-decimal ml-10">
-                    <li>Mark the "checkbox" indicated below to signify your authorization</li>
+                    <li>{`Mark the "checkbox" indicated below to signify your authorization`}</li>
                     <li>
-                        Upon receiving a pop-up message requesting permission, choose "Entire Screen" to enable full-screen recording.
+                        {`Upon receiving a pop-up message requesting permission, choose "Entire Screen" to enable full-screen recording.`}
                     </li>
-                    <li>Click the "Share" button.</li>
-                    <li>Proceed to click "Start the Interview Session" to commence your interview.
+                    <li>{`Click the "Share" button.`}</li>
+                    <li>{`Proceed to click "Start the Interview Session" to commence your interview.`}
                     </li>
                 </ol>
 
                 <div className="flex gap-2 m-auto">
                     <input type="checkbox" checked={recrodingContext?.status === "recording"}
                         onChange={handleCheckboxChange} />
-                    <p>I allow full-screen recording of my interview for review and assessment purposes</p>
+                    <p>{`I allow full-screen recording of my interview for review and assessment purposes`}</p>
                 </div>
 
 
