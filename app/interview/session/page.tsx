@@ -36,39 +36,6 @@ export default function Page() {
   const azureServiceRegion = "eastus";
   const uuid = useRef<string>("");
 
-  // const { startRecording, stopRecording, mediaBlobUrl, } = useReactMediaRecorder({
-  //   screen: true,
-  //   audio: true,
-  //   askPermissionOnMount: false,
-  // });
-
-  var initTime = new Date();
-
-  const showTimer = (ms: number) => {
-    // const milliseconds = Math.floor((ms % 1000) / 10)
-    //   .toString()
-    //   .padStart(2, "0");
-    const second = Math.floor((ms / 1000) % 60)
-    // const minute = Math.floor((ms / 1000 / 60) % 60)
-    //   .toString()
-    //   .padStart(2, "0");
-    // const hour = Math.floor(ms / 1000 / 60 / 60).toString();
-    // setTime(second);
-  };
-
-  // useEffect(() => {
-  //   var id = setInterval(() => {
-  //     var left = count + (new Date().getTime() - initTime.getTime());
-  //     setCount(left);
-  //     showTimer(left);
-  //     if (left <= 0) {
-  //       setTime(0);
-  //       clearInterval(id);
-  //     }
-  //   }, 1);
-  //   return () => clearInterval(id);
-  // }, []);
-
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const KEY = {
@@ -152,7 +119,6 @@ export default function Page() {
     };
     init();
     startCamera();
-    // startRecording();
   }, []);
 
   const submitAnswer = async (answer: string) => {

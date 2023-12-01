@@ -1,13 +1,13 @@
 "use client";
 
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 
 const KEY = {
   baseUrl: "https://jardinespocapi.azurewebsites.net",
   customapikey: "774620",
 };
 
-export default function Page({params}: {params: {id: string}}) {
+export default function Page({ params }: { params: { id: string } }) {
   const [summary, setSummary] = useState("");
   const [recommendation, setRecommendation] = useState("");
   const [video, setVideo] = useState<any>(null);
@@ -45,11 +45,11 @@ export default function Page({params}: {params: {id: string}}) {
         <div className="rounded-[10px] w-3/5 bg-[#E8E8E8] py-[23px] px-[16px]">
           <p className="text-[16px]">
             <span className="font-bold">Name:</span>
-            &nbsp;{"Bilal"}
+            &nbsp;{"John Doe"}
           </p>
           <p className="text-[16px]">
             <span className="font-bold">Position:</span>
-            &nbsp;{"Frontend Developer"}
+            &nbsp;{"Management Trainee"}
           </p>
           <p className="text-[16px]">
             <span className="font-bold">Category:</span>
@@ -65,22 +65,13 @@ export default function Page({params}: {params: {id: string}}) {
               boxShadow:
                 "0px 4px 4px 0px rgba(0, 0, 0, 0.25) inset, 0px 4px 4px 0px rgba(0, 0, 0, 25)",
             }}
-            className="p-[16px] rounded-[10px] max-h-[300px] overflow-auto bg-white"
+            className="p-[16px] rounded-[10px] h-full overflow-auto bg-white"
           >
             <p className="text-[20px] mb-2 font-bold">Summary</p>
             <p>{summary}</p>
           </div>
 
-          <div
-            style={{
-              boxShadow:
-                "0px 4px 4px 0px rgba(0, 0, 0, 0.25) inset, 0px 4px 4px 0px rgba(0, 0, 0, 25)",
-            }}
-            className="p-[16px] rounded-[10px] bg-white"
-          >
-            <p className="font-bold">Conclusion:</p>
-            <p>{recommendation}</p>
-          </div>
+
         </div>
       </div>
     </div>
