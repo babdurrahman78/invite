@@ -1,10 +1,11 @@
 "use client";
 
+import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 import {getAvatarSynthesizer} from "@/utils/avatarUtils";
 import {microphone} from "@/utils/microphoneUtils";
 import {getSpeechRecognizer} from "@/utils/speechUtils";
 import {setupWebRTC} from "@/utils/webRTC";
-import {useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 
 interface IMessage {
   role: "system" | "user" | "assisstant";
@@ -15,11 +16,19 @@ export default function Page() {
   const startBtn = useRef<HTMLButtonElement>(null);
   const microphoneBtn = useRef<HTMLButtonElement>(null);
   const remoteVideo = useRef<HTMLDivElement>(null);
-  const speechRecognizer = getSpeechRecognizer();
+  const speechRecognizer = useRef<sdk.SpeechRecognizer | null>(null);
   const avatarSynthesizer = getAvatarSynthesizer();
+
+  useEffect(() => {
+    if (microphoneBtn.current) {
+      // Initialize speech recognizer once the button is available
+      speechRecognizer.current = getSpeechRecognizer();
+    }
+  }, []);
 
   const [message, setMessage] = useState<IMessage[]>([]);
   const [contMsg, setContMsg] = useState("");
+  const [isListening, setIsListening] = useState(false);
 
   const startSession = () => {
     const xhr = new XMLHttpRequest();
@@ -63,12 +72,31 @@ export default function Page() {
 
     console.log(newMessage);
     setMessage([..._message, newMessage]);
+
+    // reset spoken message from user
+    setContMsg("");
   };
 
-  console.log(contMsg);
-
   const handleContMsg = (value: string) => {
-    setContMsg(cntMsg => cntMsg + " " + value);
+    setContMsg(prev => prev + value + " ");
+  };
+
+  useEffect(() => {
+    console.log(contMsg);
+  }, [contMsg]);
+
+  const handleMicrophone = () => {
+    microphone(
+      "Start Microphone",
+      "Stop Microphone",
+      microphoneBtn.current!,
+      speechRecognizer.current!,
+      // value => handleMessage(value, "user")
+      value => {
+        handleContMsg(value);
+      },
+      () => handleMessage(contMsg, "user")
+    );
   };
 
   return (
@@ -89,18 +117,7 @@ export default function Page() {
             className="bg-green-500 disabled:bg-gray-300 text-white p-3"
             id="startSession"
             ref={microphoneBtn}
-            onClick={() => {
-              microphone(
-                "Start Microphone",
-                "Stop Microphone",
-                microphoneBtn.current!,
-                speechRecognizer,
-                // value => handleMessage(value, "user")
-                value => {
-                  handleContMsg(value);
-                }
-              );
-            }}
+            onClick={handleMicrophone}
           >
             Start Microphone
           </button>
