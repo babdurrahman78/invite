@@ -20,7 +20,7 @@ import {submitMsg} from "@/utils/openAIUtils";
 export default function Page() {
   const router = useRouter();
   const finishInterviewContext = useContext(FinishInterviewContext);
-  const recrodingContext = useContext(RecordingContext);
+  // const recrodingContext = useContext(RecordingContext);
   const [isAnswering, setIsAnswering] = useState(false);
   const [index, setIndex] = useState(1);
   const [question, setQuestion] = useState<string>();
@@ -50,36 +50,36 @@ export default function Page() {
     baseUrl: "https://jardinespocapi.azurewebsites.net",
     customapikey: "774620",
   };
-  async function transcribeAudio(audioFile: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const audioConfig = sdk.AudioConfig.fromWavFileInput(audioFile);
-      const speechConfig = sdk.SpeechConfig.fromSubscription(
-        azureSubscriptionKey,
-        azureServiceRegion
-      );
+  // async function transcribeAudio(audioFile: File): Promise<string> {
+  //   return new Promise((resolve, reject) => {
+  //     const audioConfig = sdk.AudioConfig.fromWavFileInput(audioFile);
+  //     const speechConfig = sdk.SpeechConfig.fromSubscription(
+  //       azureSubscriptionKey,
+  //       azureServiceRegion
+  //     );
 
-      const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
-      recognizer.recognizeOnceAsync(result => {
-        if (result.reason === sdk.ResultReason.RecognizedSpeech) {
-          const transcription = result.text;
-          console.log(transcription);
-          resolve(transcription);
-        } else {
-          reject("failed");
-        }
-      });
-    });
-  }
+  //     const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
+  //     recognizer.recognizeOnceAsync(result => {
+  //       if (result.reason === sdk.ResultReason.RecognizedSpeech) {
+  //         const transcription = result.text;
+  //         console.log(transcription);
+  //         resolve(transcription);
+  //       } else {
+  //         reject("failed");
+  //       }
+  //     });
+  //   });
+  // }
 
-  const handleTranscription = async (file: File) => {
-    try {
-      const transcription = await transcribeAudio(file);
-      console.log("Transcription:", transcription);
-      return transcription;
-    } catch (error) {
-      console.error("Error transcribing audio:", error);
-    }
-  };
+  // const handleTranscription = async (file: File) => {
+  //   try {
+  //     const transcription = await transcribeAudio(file);
+  //     console.log("Transcription:", transcription);
+  //     return transcription;
+  //   } catch (error) {
+  //     console.error("Error transcribing audio:", error);
+  //   }
+  // };
 
   const startCamera = async () => {
     try {
@@ -171,59 +171,59 @@ export default function Page() {
     }
   };
 
-  const transcribe = async () => {
-    const audioLink = document.getElementsByTagName("audio")[0];
-    if (audioLink) {
-      const link = document.createElement("a");
-      link.href = audioLink.src;
+  // const transcribe = async () => {
+  //   const audioLink = document.getElementsByTagName("audio")[0];
+  //   if (audioLink) {
+  //     const link = document.createElement("a");
+  //     link.href = audioLink.src;
 
-      const res = await fetch(audioLink.src);
-      const blob = await res.blob();
+  //     const res = await fetch(audioLink.src);
+  //     const blob = await res.blob();
 
-      const file = new File([blob], "test.wav");
-      const transcription = await handleTranscription(file);
-      if (!!transcription) {
-        await submitAnswer(transcription);
-      } else {
-        setIsLoading(false);
-        setQuestion(
-          "Sorry John, I didn't quite catch that. Would you like me to repeat the question?"
-        );
-      }
-    }
-  };
+  //     const file = new File([blob], "test.wav");
+  //     const transcription = await handleTranscription(file);
+  //     if (!!transcription) {
+  //       await submitAnswer(transcription);
+  //     } else {
+  //       setIsLoading(false);
+  //       setQuestion(
+  //         "Sorry John, I didn't quite catch that. Would you like me to repeat the question?"
+  //       );
+  //     }
+  //   }
+  // };
 
-  const fetchCapturedScreenURL = async () => {
-    if (recrodingContext?.mediaBlobUrl) {
-      const res = await fetch(recrodingContext.mediaBlobUrl);
-      const blob = await res.blob();
+  // const fetchCapturedScreenURL = async () => {
+  //   if (recrodingContext?.mediaBlobUrl) {
+  //     const res = await fetch(recrodingContext.mediaBlobUrl);
+  //     const blob = await res.blob();
 
-      const file = new File([blob], "screen-recorded");
-      return file;
-    }
-    return;
-  };
+  //     const file = new File([blob], "screen-recorded");
+  //     return file;
+  //   }
+  //   return;
+  // };
 
-  const handleCloseInterview = async () => {
-    setIsLoadingSubmit(true);
-    try {
-      const file = await fetchCapturedScreenURL();
-      setIsClosed(true);
-      if (file) {
-        await finishInterview(file);
-      }
-    } catch (e) {
-      console.log(e);
-    }
-    setIsLoadingSubmit(false);
-    stopDisplayingCamera();
-  };
+  // const handleCloseInterview = async () => {
+  //   setIsLoadingSubmit(true);
+  //   try {
+  //     const file = await fetchCapturedScreenURL();
+  //     setIsClosed(true);
+  //     if (file) {
+  //       await finishInterview(file);
+  //     }
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+  //   setIsLoadingSubmit(false);
+  //   stopDisplayingCamera();
+  // };
 
-  useEffect(() => {
-    if (finishInterviewContext?.isFinish) {
-      recrodingContext?.stopRecording();
-    }
-  }, [finishInterviewContext?.isFinish]);
+  // useEffect(() => {
+  //   if (finishInterviewContext?.isFinish) {
+  //     recrodingContext?.stopRecording();
+  //   }
+  // }, [finishInterviewContext?.isFinish]);
 
   const startAnswer = () => {
     setIsAnswering(true);
@@ -411,7 +411,7 @@ export default function Page() {
           </div>
         </div> */}
         {/* Main Interview */}
-        <div className="flex gap-6 justify-center min-[1440px]:px-16">
+        <div className="flex gap-6 justify-center px-16">
           {/* Question  */}
           <div
             id="remoteVideo"
@@ -480,7 +480,7 @@ export default function Page() {
                 width="250px"
                 height="44px"
                 disabled={loadingSubmit}
-                onClick={handleCloseInterview}
+                // onClick={handleCloseInterview}
                 className={`${
                   finishInterviewContext?.isFinish ? "block" : "hidden"
                 }`}
@@ -604,9 +604,9 @@ export default function Page() {
             }`}
           /> */}
         </div>
-        <button className="hidden" id="transcribe" onClick={transcribe}>
+        {/* <button className="hidden" id="transcribe" onClick={transcribe}>
           Transcribe
-        </button>{" "}
+        </button>{" "} */}
       </div>
       <div
         className={`flex flex-col items-center pt-[195px] ${
@@ -632,8 +632,8 @@ export default function Page() {
         </div>
       </div>
       <ol className="hidden" id="recordingsList"></ol>
-      {/* <Script src="/recorder.js" async /> */}
-      {/* <Script src="/enabler.js" /> */}
+      {/* <Script src="/recorder.js" async />
+      <Script src="/enabler.js" /> */}
     </div>
   );
 }

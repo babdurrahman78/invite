@@ -60,7 +60,7 @@ export default function Page() {
   };
 
   const handleSubmitMessage = (message: IMessage[]) => {
-    submitMsg(message, avatarSynthesizer.current!);
+    // submitMsg(message, avatarSynthesizer.current!);
   };
 
   const handleMessage = (
@@ -110,7 +110,7 @@ export default function Page() {
         <div id="remoteVideo" ref={remoteVideo}></div>
         <div className="flex gap-3 ">
           <button
-            className="bg-green-500 disabled:bg-gray-300 text-white p-3"
+            className="bg-green-500 \ text-white p-3"
             id="startSession"
             ref={startBtn}
             onClick={startSession}
