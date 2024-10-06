@@ -6,9 +6,9 @@ export const setupWebRTC = (
   iceServerUsername: any,
   iceServerCredential: any,
   // startButton: HTMLButtonElement,
-  remoteVideo: HTMLDivElement
+  remoteVideo: HTMLDivElement,
+  avatarSynthesizer: sdk.AvatarSynthesizer
 ) => {
-  const avatarSynthesizer = getAvatarSynthesizer();
   const peerConnection = new RTCPeerConnection({
     iceServers: [
       {

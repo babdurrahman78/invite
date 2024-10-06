@@ -1,28 +1,29 @@
 "use client";
 
 import * as sdk from "microsoft-cognitiveservices-speech-sdk";
-import {getAvatarSynthesizer} from "@/utils/avatarUtils";
+
 import {microphone} from "@/utils/microphoneUtils";
 import {getSpeechRecognizer} from "@/utils/speechUtils";
 import {setupWebRTC} from "@/utils/webRTC";
 import {useEffect, useRef, useState} from "react";
-
-interface IMessage {
-  role: "system" | "user" | "assisstant";
-  content: string;
-}
+import {IMessage} from "@/interfaces/common";
+import {getAvatarSynthesizer} from "@/utils/avatarUtils";
+import {submitMsg} from "@/utils/openAIUtils";
 
 export default function Page() {
   const startBtn = useRef<HTMLButtonElement>(null);
   const microphoneBtn = useRef<HTMLButtonElement>(null);
   const remoteVideo = useRef<HTMLDivElement>(null);
   const speechRecognizer = useRef<sdk.SpeechRecognizer | null>(null);
+  const avatarSynthesizer = useRef<sdk.AvatarSynthesizer | null>(null);
 
   useEffect(() => {
     if (microphoneBtn.current) {
       // Initialize speech recognizer once the button is available
       speechRecognizer.current = getSpeechRecognizer();
     }
+
+    avatarSynthesizer.current = getAvatarSynthesizer();
   }, []);
 
   const [message, setMessage] = useState<IMessage[]>([]);
@@ -50,16 +51,21 @@ export default function Page() {
           iceServerUsername,
           iceServerCredential,
           // startBtn.current!,
-          remoteVideo.current!
+          remoteVideo.current!,
+          avatarSynthesizer.current!
         );
       }
     });
     xhr.send();
   };
 
+  const handleSubmitMessage = (message: IMessage[]) => {
+    submitMsg(message, avatarSynthesizer.current!);
+  };
+
   const handleMessage = (
     content: string,
-    role: "user" | "assisstant" | "system"
+    role: "user" | "assistant" | "system"
   ) => {
     const _message = message;
 
@@ -69,6 +75,7 @@ export default function Page() {
     };
 
     console.log(newMessage);
+    handleSubmitMessage([..._message, newMessage]);
     setMessage([..._message, newMessage]);
 
     // reset spoken message from user

@@ -11,6 +11,11 @@ import Link from "next/link";
 import {RecordingContext} from "@/components/recordingContext";
 import {setupWebRTC} from "@/utils/webRTC";
 import Image from "next/image";
+import {getAvatarSynthesizer} from "@/utils/avatarUtils";
+import {microphone} from "@/utils/microphoneUtils";
+import {IMessage} from "@/interfaces/common";
+import {getSpeechRecognizer} from "@/utils/speechUtils";
+import {submitMsg} from "@/utils/openAIUtils";
 
 export default function Page() {
   const router = useRouter();
@@ -258,6 +263,12 @@ export default function Page() {
   const microphoneBtn = useRef<HTMLButtonElement>(null);
   const remoteVideo = useRef<HTMLDivElement>(null);
   const speechRecognizer = useRef<sdk.SpeechRecognizer | null>(null);
+  const avatarSynthesizer = useRef<sdk.AvatarSynthesizer | null>(null);
+
+  useEffect(() => {
+    avatarSynthesizer.current = getAvatarSynthesizer();
+    speechRecognizer.current = getSpeechRecognizer();
+  }, []);
 
   const startSession = () => {
     const xhr = new XMLHttpRequest();
@@ -280,7 +291,8 @@ export default function Page() {
           iceServerUrl,
           iceServerUsername,
           iceServerCredential,
-          remoteVideo.current!
+          remoteVideo.current!,
+          avatarSynthesizer.current!
         );
       }
     });
@@ -292,6 +304,54 @@ export default function Page() {
       // startSession();
     }
   }, [remoteVideo.current]);
+
+  const [message, setMessage] = useState<IMessage[]>([]);
+  const [contMsg, setContMsg] = useState("");
+
+  const handleSubmitMessage = (message: IMessage[]) => {
+    submitMsg(message, avatarSynthesizer.current!);
+  };
+
+  const handleMessage = (
+    content: string,
+    role: "user" | "assistant" | "system"
+  ) => {
+    const _message = message;
+
+    const newMessage: IMessage = {
+      role,
+      content,
+    };
+
+    console.log(newMessage);
+    handleSubmitMessage([..._message, newMessage]);
+    setMessage([..._message, newMessage]);
+
+    // reset spoken message from user
+    setContMsg("");
+  };
+
+  const handleContMsg = (value: string) => {
+    setContMsg(prev => prev + value + " ");
+  };
+
+  useEffect(() => {
+    console.log(contMsg);
+  }, [contMsg]);
+
+  const handleMicrophone = () => {
+    microphone(
+      "Start Answer",
+      "Stop Answer",
+      microphoneBtn.current!,
+      speechRecognizer.current!,
+      // value => handleMessage(value, "user")
+      value => {
+        handleContMsg(value);
+      },
+      () => handleMessage(contMsg, "user")
+    );
+  };
 
   return (
     <div>
@@ -452,13 +512,23 @@ export default function Page() {
           </div>
 
           <button
-            onClick={startSession}
-            className="w-[203px] gap-[8.17px] h-[42px] rounded-[4px] flex justify-center items-center bg-[#1870F0]"
+            onClick={() => {
+              startSession();
+            }}
+            className="w-[203px] gap-[8.17px] disabled:bg-gray-300 text-white h-[42px] rounded-[4px] flex justify-center items-center bg-[#1870F0]"
+          >
+            <p className="font-bold text-base leading-[22px]">Start Session</p>
+          </button>
+
+          <button
+            onClick={() => {
+              handleMicrophone();
+            }}
+            ref={microphoneBtn}
+            className="w-[203px] gap-[8.17px] disabled:bg-gray-300 text-white h-[42px] rounded-[4px] flex justify-center items-center bg-[#1870F0]"
           >
             <Image src={"/microphone.svg"} alt="mic" width={12} height={16} />
-            <p className="font-bold text-white text-base leading-[22px]">
-              Start Answer
-            </p>
+            <p className="font-bold text-base leading-[22px]">Start Answer</p>
           </button>
 
           <div className="w-[48px] flex flex-col items-center h-[72px]">
