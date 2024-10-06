@@ -265,10 +265,18 @@ export default function Page() {
   const speechRecognizer = useRef<sdk.SpeechRecognizer | null>(null);
   const avatarSynthesizer = useRef<sdk.AvatarSynthesizer | null>(null);
 
+  const [sessionStarted, setSessionStarted] = useState(false);
+
   useEffect(() => {
     avatarSynthesizer.current = getAvatarSynthesizer();
     speechRecognizer.current = getSpeechRecognizer();
   }, []);
+
+  useEffect(() => {
+    if (sessionStarted) {
+      handleSubmitMessage(message);
+    }
+  }, [sessionStarted]);
 
   const startSession = () => {
     const xhr = new XMLHttpRequest();
@@ -297,6 +305,8 @@ export default function Page() {
       }
     });
     xhr.send();
+
+    setSessionStarted(true);
   };
 
   useEffect(() => {
@@ -305,11 +315,27 @@ export default function Page() {
     }
   }, [remoteVideo.current]);
 
-  const [message, setMessage] = useState<IMessage[]>([]);
+  const [message, setMessage] = useState<IMessage[]>([
+    {
+      role: "system",
+      content:
+        "You are an HR interviewer named Vivi who will introduce yourself then ask interviewee to introduce himself",
+    },
+  ]);
+
   const [contMsg, setContMsg] = useState("");
+  const [contMsgAI, setContMsgAI] = useState("");
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const handleSubmitMessage = (message: IMessage[]) => {
-    submitMsg(message, avatarSynthesizer.current!);
+    submitMsg(
+      message,
+      avatarSynthesizer.current!,
+      value => setContMsgAI(prev => prev + value)
+      // messages => {
+      //   setMessage([...messages]);
+      // }
+    );
   };
 
   const handleMessage = (
@@ -323,7 +349,6 @@ export default function Page() {
       content,
     };
 
-    console.log(newMessage);
     handleSubmitMessage([..._message, newMessage]);
     setMessage([..._message, newMessage]);
 
@@ -340,6 +365,17 @@ export default function Page() {
   }, [contMsg]);
 
   const handleMicrophone = () => {
+    if (!!contMsgAI) {
+      // push assistant message to history chat
+      let assistantMessage: IMessage = {
+        role: "assistant",
+        content: contMsgAI,
+      };
+      setMessage([...message, assistantMessage]);
+    }
+
+    setContMsgAI("");
+
     microphone(
       "Start Answer",
       "Stop Answer",
@@ -453,42 +489,57 @@ export default function Page() {
           </div>
         </div>
         {/* Subtitle */}
-        <div className="px-16 h-[186px] scrollbar-hide overflow-auto">
+        <div className="px-16 h-[186px]">
           <div className="rounded-lg h-full bg-content border-[#E0E6EB] border px-6 py-3">
             <header className="flex gap-[5.33px] pb-4 border-b border-[#E0E6EB]">
               <Image src={"/cc.svg"} alt="cc" width={13} height={12} />
               <p className="font-bold text-sm">Subtitle</p>
             </header>
 
-            <main className="mt-4 flex flex-col gap-4 ">
-              <div className="flex gap-2 items-start">
-                <div className="size-6  rounded-full border-[1.2px] border-[#E0E6EB]">
-                  <Image
-                    src={"/avatar.png"}
-                    alt={"user"}
-                    width={24}
-                    height={24}
-                  />
+            <main className="mt-4 h-[100px] flex flex-col gap-4 scrollbar-hide overflow-auto">
+              {message.map((item, index) => {
+                return (
+                  item.role !== "system" && (
+                    <div key={index} className="flex gap-2 items-start">
+                      <div className="size-6 rounded-full border-[1.2px] border-[#E0E6EB]">
+                        <Image
+                          src={
+                            item.role === "user"
+                              ? "/avatar.png"
+                              : "/vivi-subtitle.png"
+                          }
+                          alt={item.role}
+                          width={24}
+                          height={24}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[#535353] text-sm font-normal leading-[16.8px]">
+                          {item.content}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                );
+              })}
+              {/* AI reply typing animation */}
+              {!!contMsgAI && (
+                <div key={index} className="flex gap-2 items-start">
+                  <div className="size-6  rounded-full border-[1.2px] border-[#E0E6EB]">
+                    <Image
+                      src={"/vivi-subtitle.png"}
+                      alt={"assistant"}
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[#535353] text-sm font-normal leading-[16.8px]">
+                      {contMsgAI}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-[#535353] text-sm font-normal leading-[16.8px]">
-                  Halo... Nama saya John Doe. Saya suka nasi goreng tanpa cabe.
-                  Saya gasuka hana...
-                </p>
-              </div>
-
-              <div className="flex gap-2 items-start">
-                <div className="size-6  rounded-full border-[1.2px] border-[#E0E6EB]">
-                  <Image
-                    src={"/vivi-subtitle.png"}
-                    alt={"vivi"}
-                    width={24}
-                    height={24}
-                  />
-                </div>
-                <p className="text-[#535353] text-sm font-normal leading-[16.8px]">
-                  Halo, Saya Vivi dan saya juga tidak suka beliau
-                </p>
-              </div>
+              )}
             </main>
           </div>
         </div>

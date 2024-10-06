@@ -36,23 +36,25 @@ const speak = (
   text: string,
   isSpeaking: boolean,
   spokenTextQueue: string[],
-  avatarSynthesizer: sdk.AvatarSynthesizer
+  avatarSynthesizer: sdk.AvatarSynthesizer,
+  onSpeaking: (value: string) => void
 ) => {
   if (isSpeaking) {
     spokenTextQueue.push(text);
     return;
   }
 
-  console.log("spoken text :", text);
+  //   console.log("spoken text :", text);
 
-  speakNext(text, isSpeaking, avatarSynthesizer, spokenTextQueue);
+  speakNext(text, isSpeaking, avatarSynthesizer, spokenTextQueue, onSpeaking);
 };
 
 const speakNext = (
   text: string,
   isSpeaking: boolean,
   avatarSynthesizer: sdk.AvatarSynthesizer,
-  spokenTextQueue: string[]
+  spokenTextQueue: string[],
+  onSpeaking: (value: string) => void
 ) => {
   const ttsVoice = "en-US-AvaMultilingualNeural";
   let ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='http://www.w3.org/2001/mstts' xml:lang='en-US'><voice name='${ttsVoice}'><mstts:ttsembedding><mstts:leadingsilence-exact value='0'/>${htmlEncode(
@@ -67,6 +69,7 @@ const speakNext = (
         console.log(
           `Speech synthesized to speaker for text [ ${text} ]. Result ID: ${result.resultId}`
         );
+        onSpeaking(text + " ");
       } else {
         console.log(
           `Error occurred while speaking the SSML. Result ID: ${result.resultId}`
@@ -78,7 +81,8 @@ const speakNext = (
           spokenTextQueue.shift()!,
           isSpeaking,
           avatarSynthesizer,
-          spokenTextQueue
+          spokenTextQueue,
+          onSpeaking
         );
       } else {
         isSpeaking = false;
@@ -92,7 +96,8 @@ const speakNext = (
           spokenTextQueue.shift()!,
           isSpeaking,
           avatarSynthesizer,
-          spokenTextQueue
+          spokenTextQueue,
+          onSpeaking
         );
       } else {
         isSpeaking = false;
@@ -102,7 +107,8 @@ const speakNext = (
 
 export const submitMsg = async (
   messages: IMessage[],
-  avatarSynthesizer: sdk.AvatarSynthesizer
+  avatarSynthesizer: sdk.AvatarSynthesizer,
+  onSpeaking: (value: string) => void
 ) => {
   const spokenTextQueue: string[] = [];
   let isSpeaking = false;
@@ -182,7 +188,8 @@ export const submitMsg = async (
                       spokenSentence.trim(),
                       isSpeaking,
                       spokenTextQueue,
-                      avatarSynthesizer
+                      avatarSynthesizer,
+                      onSpeaking
                     );
                     spokenSentence = "";
                   } else {
@@ -207,7 +214,8 @@ export const submitMsg = async (
                             spokenSentence.trim(),
                             isSpeaking,
                             spokenTextQueue,
-                            avatarSynthesizer
+                            avatarSynthesizer,
+                            onSpeaking
                           );
                           spokenSentence = "";
                           break;
@@ -236,17 +244,11 @@ export const submitMsg = async (
           spokenSentence.trim(),
           isSpeaking,
           spokenTextQueue,
-          avatarSynthesizer
+          avatarSynthesizer,
+          onSpeaking
         );
         spokenSentence = "";
       }
-
-      let assistantMessage: IMessage = {
-        role: "assistant",
-        content: assistantReply,
-      };
-
-      messages.push(assistantMessage);
     });
 };
 
