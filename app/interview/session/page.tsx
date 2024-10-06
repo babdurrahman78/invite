@@ -389,6 +389,10 @@ export default function Page() {
     );
   };
 
+  useEffect(() => {
+    startSession();
+  }, []);
+
   return (
     <div>
       <div
@@ -562,19 +566,24 @@ export default function Page() {
             </p>
           </div>
 
-          <button
-            onClick={() => {
-              startSession();
-            }}
-            className="w-[203px] gap-[8.17px] disabled:bg-gray-300 text-white h-[42px] rounded-[4px] flex justify-center items-center bg-[#1870F0]"
-          >
-            <p className="font-bold text-base leading-[22px]">Start Session</p>
-          </button>
+          {/* {!sessionStarted && (
+            <button
+              onClick={() => {
+                startSession();
+              }}
+              className="w-[203px] gap-[8.17px] disabled:bg-gray-300 text-white h-[42px] rounded-[4px] flex justify-center items-center bg-[#1870F0]"
+            >
+              <p className="font-bold text-base leading-[22px]">
+                Start Session
+              </p>
+            </button>
+          )} */}
 
           <button
             onClick={() => {
               handleMicrophone();
             }}
+            disabled={!sessionStarted}
             ref={microphoneBtn}
             className="w-[203px] gap-[8.17px] disabled:bg-gray-300 text-white h-[42px] rounded-[4px] flex justify-center items-center bg-[#1870F0]"
           >
