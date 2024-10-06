@@ -17,7 +17,6 @@ export default function Page() {
   const microphoneBtn = useRef<HTMLButtonElement>(null);
   const remoteVideo = useRef<HTMLDivElement>(null);
   const speechRecognizer = useRef<sdk.SpeechRecognizer | null>(null);
-  const avatarSynthesizer = getAvatarSynthesizer();
 
   useEffect(() => {
     if (microphoneBtn.current) {
@@ -28,7 +27,6 @@ export default function Page() {
 
   const [message, setMessage] = useState<IMessage[]>([]);
   const [contMsg, setContMsg] = useState("");
-  const [isListening, setIsListening] = useState(false);
 
   const startSession = () => {
     const xhr = new XMLHttpRequest();
@@ -51,7 +49,7 @@ export default function Page() {
           iceServerUrl,
           iceServerUsername,
           iceServerCredential,
-          startBtn.current!,
+          // startBtn.current!,
           remoteVideo.current!
         );
       }

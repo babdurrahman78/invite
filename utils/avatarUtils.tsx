@@ -3,11 +3,7 @@ import {getSpeechSynthesizer} from "./speechUtils";
 
 export const getAvatarSynthesizer = () => {
   const videoFormat = new sdk.AvatarVideoFormat();
-  const avatarConfig = new sdk.AvatarConfig(
-    "lisa",
-    "casual-sitting",
-    videoFormat
-  );
+  const avatarConfig = new sdk.AvatarConfig("meg", "business", videoFormat);
 
   const speechSynthesizerConfig = getSpeechSynthesizer();
 

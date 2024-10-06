@@ -1,27 +1,30 @@
 "use client";
 
 import * as sdk from "microsoft-cognitiveservices-speech-sdk";
-import Image from "next/image";
 import Button from "@/components/common/Button";
-import { useContext, useEffect, useRef, useState } from "react";
+import {useContext, useEffect, useRef, useState} from "react";
 import Script from "next/script";
-import { FinishInterviewContext } from "@/components/finishInterviewComponent";
-import { useRouter } from "next/navigation";
-import { useReactMediaRecorder } from "react-media-recorder";
+import {FinishInterviewContext} from "@/components/finishInterviewComponent";
+import {useRouter} from "next/navigation";
+import {useReactMediaRecorder} from "react-media-recorder";
 import Link from "next/link";
-import { RecordingContext } from "@/components/recordingContext";
+import {RecordingContext} from "@/components/recordingContext";
+import {setupWebRTC} from "@/utils/webRTC";
+import Image from "next/image";
 
 export default function Page() {
   const router = useRouter();
   const finishInterviewContext = useContext(FinishInterviewContext);
-  const recrodingContext = useContext(RecordingContext)
+  const recrodingContext = useContext(RecordingContext);
   const [isAnswering, setIsAnswering] = useState(false);
   const [index, setIndex] = useState(1);
   const [question, setQuestion] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
   const [loadingSubmit, setIsLoadingSubmit] = useState(false);
-  const [isClosed, setIsClosed] = useState(false)
-  const [recordingStatus, setRecordingStatus] = useState<'RECORDING' | 'IDLE'>('IDLE')
+  const [isClosed, setIsClosed] = useState(false);
+  const [recordingStatus, setRecordingStatus] = useState<"RECORDING" | "IDLE">(
+    "IDLE"
+  );
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
 
   // state for answer time
@@ -75,7 +78,7 @@ export default function Page() {
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({video: true});
       setCameraStream(stream);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -87,7 +90,7 @@ export default function Page() {
 
   const stopDisplayingCamera = () => {
     if (cameraStream) {
-      cameraStream.getTracks().forEach((track) => track.stop());
+      cameraStream.getTracks().forEach(track => track.stop());
       setCameraStream(null); // Clear the camera stream from the state
     }
   };
@@ -117,7 +120,7 @@ export default function Page() {
         setIsLoading(false);
       }
     };
-    init();
+    // init();
     startCamera();
   }, []);
 
@@ -178,7 +181,9 @@ export default function Page() {
         await submitAnswer(transcription);
       } else {
         setIsLoading(false);
-        setQuestion("Sorry John, I didn't quite catch that. Would you like me to repeat the question?")
+        setQuestion(
+          "Sorry John, I didn't quite catch that. Would you like me to repeat the question?"
+        );
       }
     }
   };
@@ -198,7 +203,7 @@ export default function Page() {
     setIsLoadingSubmit(true);
     try {
       const file = await fetchCapturedScreenURL();
-      setIsClosed(true)
+      setIsClosed(true);
       if (file) {
         await finishInterview(file);
       }
@@ -206,14 +211,14 @@ export default function Page() {
       console.log(e);
     }
     setIsLoadingSubmit(false);
-    stopDisplayingCamera()
+    stopDisplayingCamera();
   };
 
   useEffect(() => {
     if (finishInterviewContext?.isFinish) {
       recrodingContext?.stopRecording();
     }
-  }, [finishInterviewContext?.isFinish])
+  }, [finishInterviewContext?.isFinish]);
 
   const startAnswer = () => {
     setIsAnswering(true);
@@ -232,7 +237,7 @@ export default function Page() {
     if (isAnswering) {
       var id = setInterval(() => {
         const tempProgress = Math.floor(
-          ((new Date().getTime() / 1000) - (limitTimeAnswer / 1000))
+          new Date().getTime() / 1000 - limitTimeAnswer / 1000
         );
         setProgress(tempProgress);
         console.log(tempProgress);
@@ -248,11 +253,53 @@ export default function Page() {
     return () => clearInterval(id);
   }, [isAnswering]);
 
+  // new speech service implementation
+  const startBtn = useRef<HTMLButtonElement>(null);
+  const microphoneBtn = useRef<HTMLButtonElement>(null);
+  const remoteVideo = useRef<HTMLDivElement>(null);
+  const speechRecognizer = useRef<sdk.SpeechRecognizer | null>(null);
+
+  const startSession = () => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.open(
+      "GET",
+      `https://southeastasia.tts.speech.microsoft.com/cognitiveservices/avatar/relay/token/v1`
+    );
+    xhr.setRequestHeader(
+      "Ocp-Apim-Subscription-Key",
+      "0bd46896daad4c1a887dd833048f4d67"
+    );
+    xhr.addEventListener("readystatechange", () => {
+      if (xhr.readyState === 4) {
+        const responseData = JSON.parse(xhr.responseText);
+        const iceServerUrl = responseData.Urls[0];
+        const iceServerUsername = responseData.Username;
+        const iceServerCredential = responseData.Password;
+        setupWebRTC(
+          iceServerUrl,
+          iceServerUsername,
+          iceServerCredential,
+          remoteVideo.current!
+        );
+      }
+    });
+    xhr.send();
+  };
+
+  useEffect(() => {
+    if (remoteVideo.current) {
+      // startSession();
+    }
+  }, [remoteVideo.current]);
+
   return (
     <div>
-      <div className={`mt-[64px] flex flex-col gap-6 ${isClosed ? 'hidden' : 'block'}`}>
+      <div
+        className={`mt-8 flex flex-col gap-6 ${isClosed ? "hidden" : "block"}`}
+      >
         {/* Title */}
-        <div className="flex justify-center relative ">
+        {/* <div className="flex justify-center relative ">
           <p className="text-[28px] leading-[34px] text-primaryDarker text-center font-bold">
             Interview Session
           </p>
@@ -266,15 +313,16 @@ export default function Page() {
             <div className="rounded-full w-4 h-4 bg-danger"></div>
             <p className="font-bold text-white text-center text-[20px]">{"REC"}</p>
           </div>
-        </div>
+        </div> */}
         {/* Main Interview */}
-        <div className="flex gap-[27px] justify-center min-[1440px]:px-[66px]">
+        <div className="flex gap-6 justify-center min-[1440px]:px-16">
           {/* Question  */}
           <div
-            className={`rounded-lg ${isAnswering ? "w-[40%]" : "w-[50%]"
-              } relative flex  h-[422px] bg-content py-[32px] px-[29px]`}
+            id="remoteVideo"
+            ref={remoteVideo}
+            className={`rounded-[12px] overflow-hidden w-[50%] flex  h-[362px] bg-content`}
           >
-            {!isAnswering && (
+            {/* {!isAnswering && (
               <Image
                 className="absolute -left-12 -top-12"
                 src={"/vivi.png"}
@@ -282,27 +330,28 @@ export default function Page() {
                 width={300}
                 height={800}
               />
-            )}
-            <div className={`${!isAnswering && "ml-[200px]"} overflow-auto`}>
+            )} */}
+            {/* <div className={`${!isAnswering && "ml-[200px]"} overflow-auto`}>
               <p className="text-[20px] leading-[34px] text-primaryDarker font-bold">
                 {`Question ${index}`}
               </p>
               <p className="mt-[25px]">{isLoading ? `. . .` : question}</p>
-            </div>
+            </div> */}
           </div>
 
           {/* Video  */}
           <div
-            className={`rounded-lg ${isAnswering ? "w-[60%]" : "w-[50%]"
-              } flex flex-col items-center gap-6`}
+            className={`w-[50%]
+             flex flex-col items-center gap-6`}
           >
             <div className="relative w-full">
               <video
+                className="rounded-[12px]"
                 style={{
                   transform: "scaleX(-1)",
                   width: "100%",
                   objectFit: "fill",
-                  height: "422px",
+                  height: "362px",
                   margin: 0,
                 }}
                 ref={videoRef}
@@ -310,23 +359,7 @@ export default function Page() {
                 playsInline
                 muted
               />
-
             </div>
-
-            <Button
-              type={"primary"}
-              label={"Start Answser"}
-              width="250px"
-              height="44px"
-              id={"recordButton"}
-              onClick={startAnswer}
-              className={`${finishInterviewContext?.isFinish
-                ? "hidden"
-                : !isAnswering
-                  ? "block"
-                  : "hidden"
-                }`}
-            />
 
             <Button
               type={"danger"}
@@ -335,15 +368,16 @@ export default function Page() {
               height="44px"
               id="stopButton"
               onClick={stopAnswer}
-              className={`${finishInterviewContext?.isFinish
-                ? "hidden"
-                : isAnswering
+              className={`${
+                finishInterviewContext?.isFinish
+                  ? "hidden"
+                  : isAnswering
                   ? "block"
                   : "hidden"
-                }`}
+              }`}
             />
 
-            <Link href={`/report/${uuid.current}`} target="_blank" >
+            <Link href={`/report/${uuid.current}`} target="_blank">
               <Button
                 type={"danger"}
                 label={"Close Interview"}
@@ -351,33 +385,134 @@ export default function Page() {
                 height="44px"
                 disabled={loadingSubmit}
                 onClick={handleCloseInterview}
-                className={`${finishInterviewContext?.isFinish ? "block" : "hidden"
-                  }`}
+                className={`${
+                  finishInterviewContext?.isFinish ? "block" : "hidden"
+                }`}
               />
             </Link>
           </div>
+        </div>
+        {/* Subtitle */}
+        <div className="px-16 h-[186px] scrollbar-hide overflow-auto">
+          <div className="rounded-lg h-full bg-content border-[#E0E6EB] border px-6 py-3">
+            <header className="flex gap-[5.33px] pb-4 border-b border-[#E0E6EB]">
+              <Image src={"/cc.svg"} alt="cc" width={13} height={12} />
+              <p className="font-bold text-sm">Subtitle</p>
+            </header>
+
+            <main className="mt-4 flex flex-col gap-4 ">
+              <div className="flex gap-2 items-start">
+                <div className="size-6  rounded-full border-[1.2px] border-[#E0E6EB]">
+                  <Image
+                    src={"/avatar.png"}
+                    alt={"user"}
+                    width={24}
+                    height={24}
+                  />
+                </div>
+                <p className="text-[#535353] text-sm font-normal leading-[16.8px]">
+                  Halo... Nama saya John Doe. Saya suka nasi goreng tanpa cabe.
+                  Saya gasuka hana...
+                </p>
+              </div>
+
+              <div className="flex gap-2 items-start">
+                <div className="size-6  rounded-full border-[1.2px] border-[#E0E6EB]">
+                  <Image
+                    src={"/vivi-subtitle.png"}
+                    alt={"vivi"}
+                    width={24}
+                    height={24}
+                  />
+                </div>
+                <p className="text-[#535353] text-sm font-normal leading-[16.8px]">
+                  Halo, Saya Vivi dan saya juga tidak suka beliau
+                </p>
+              </div>
+            </main>
+          </div>
+        </div>
+        {/* footer */}
+        <div className="mt-6 flex justify-between px-16">
+          <div>
+            <div
+              style={{
+                backdropFilter: "blur(4px)",
+              }}
+              className="flex gap-2 items-center justify-center w-[100px] h-[42px] bg-blackBlur rounded"
+            >
+              <div className="rounded-full w-4 h-4 bg-danger"></div>
+              <p className="font-bold text-white text-center text-[20px]">
+                {"REC"}
+              </p>
+            </div>
+            <p className="text-[#083F78] font-bold text-xl leading-[34px]">
+              Interview Session
+            </p>
+          </div>
+
+          <button
+            onClick={startSession}
+            className="w-[203px] gap-[8.17px] h-[42px] rounded-[4px] flex justify-center items-center bg-[#1870F0]"
+          >
+            <Image src={"/microphone.svg"} alt="mic" width={12} height={16} />
+            <p className="font-bold text-white text-base leading-[22px]">
+              Start Answer
+            </p>
+          </button>
+
+          <div className="w-[48px] flex flex-col items-center h-[72px]">
+            <button className="size-12 rounded-[4px] flex justify-center items-center bg-[#E0E6EB] mb-1">
+              <Image src={"/door.svg"} alt="door" width={24} height={24} />
+            </button>
+            <p className="font-normal text-[#6D7C88] text-sm">Leave</p>
+          </div>
+          {/* <Button
+            type={"primary"}
+            label={"Start Answser"}
+            width="203px"
+            height="42px"
+            id={"recordButton"}
+            onClick={startSession}
+            className={`font-bold ${
+              finishInterviewContext?.isFinish
+                ? "hidden"
+                : !isAnswering
+                ? "block"
+                : "hidden"
+            }`}
+          /> */}
         </div>
         <button className="hidden" id="transcribe" onClick={transcribe}>
           Transcribe
         </button>{" "}
       </div>
-      <div className={`flex flex-col items-center pt-[195px] ${isClosed ? 'block' : 'hidden'}`}>
+      <div
+        className={`flex flex-col items-center pt-[195px] ${
+          isClosed ? "block" : "hidden"
+        }`}
+      >
         <p className="font-bold text-[36px] text-primaryDarker mb-[42px]">
           Thank you for joining the interview session!
         </p>
 
-        <div style={{
-          boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)",
-          backgroundColor: "rgba(217, 217, 217, 0.35)"
-        }} className="w-[685px] h-[176px] rounded-[20px] p-[25px]">
+        <div
+          style={{
+            boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)",
+            backgroundColor: "rgba(217, 217, 217, 0.35)",
+          }}
+          className="w-[685px] h-[176px] rounded-[20px] p-[25px]"
+        >
           <p className="text-[22px] text-center">
-            {"We truly appreciate your participation, and we're delighted to have had the chance to get to know you. We hope this opportunity opens doors to a successful career within our company. See you in the future!"}
+            {
+              "We truly appreciate your participation, and we're delighted to have had the chance to get to know you. We hope this opportunity opens doors to a successful career within our company. See you in the future!"
+            }
           </p>
         </div>
       </div>
       <ol className="hidden" id="recordingsList"></ol>
-      <Script src="/recorder.js" async />
-      <Script src="/enabler.js" />
+      {/* <Script src="/recorder.js" async /> */}
+      {/* <Script src="/enabler.js" /> */}
     </div>
-  )
+  );
 }

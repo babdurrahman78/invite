@@ -5,7 +5,7 @@ export const setupWebRTC = (
   iceServerUrl: any,
   iceServerUsername: any,
   iceServerCredential: any,
-  startButton: HTMLButtonElement,
+  // startButton: HTMLButtonElement,
   remoteVideo: HTMLDivElement
 ) => {
   const avatarSynthesizer = getAvatarSynthesizer();
@@ -20,7 +20,7 @@ export const setupWebRTC = (
   });
 
   // disable start button on start session
-  startButton.disabled = true;
+  // startButton.disabled = true;
 
   peerConnection.ontrack = e => {
     if (e.track.kind === "audio") {
@@ -54,6 +54,7 @@ export const setupWebRTC = (
       videoElement.srcObject = e.streams[0];
       videoElement.autoplay = true;
       videoElement.playsInline = true;
+      videoElement.style.height = "100%";
 
       videoElement.onplaying = () => {
         // const remoteVideoDiv = document.getElementById("remoteVideo");
@@ -127,7 +128,7 @@ export const setupWebRTC = (
           );
         }
 
-        startButton.disabled = true;
+        // startButton.disabled = true;
       }
     })
     .catch(error => {
@@ -138,6 +139,6 @@ export const setupWebRTC = (
           error
       );
 
-      startButton.disabled = true;
+      // startButton.disabled = true;
     });
 };
