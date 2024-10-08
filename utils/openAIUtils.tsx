@@ -36,7 +36,6 @@ const speak = (
   text: string,
   isSpeaking: boolean,
   spokenTextQueue: string[],
-  avatarSynthesizer: sdk.AvatarSynthesizer,
   onSpeaking: (value: string) => void
 ) => {
   if (isSpeaking) {
@@ -46,69 +45,78 @@ const speak = (
 
   //   console.log("spoken text :", text);
 
-  speakNext(text, isSpeaking, avatarSynthesizer, spokenTextQueue, onSpeaking);
+  speakNext(text, isSpeaking, spokenTextQueue, onSpeaking);
 };
 
 const speakNext = (
   text: string,
   isSpeaking: boolean,
-  avatarSynthesizer: sdk.AvatarSynthesizer,
   spokenTextQueue: string[],
   onSpeaking: (value: string) => void
 ) => {
-  const ttsVoice = "en-US-AvaMultilingualNeural";
-  let ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='http://www.w3.org/2001/mstts' xml:lang='en-US'><voice name='${ttsVoice}'><mstts:ttsembedding><mstts:leadingsilence-exact value='0'/>${htmlEncode(
-    text
-  )}</mstts:ttsembedding></voice></speak>`;
+  // const ttsVoice = "en-US-AvaMultilingualNeural";
+  // let ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='http://www.w3.org/2001/mstts' xml:lang='en-US'><voice name='${ttsVoice}'><mstts:ttsembedding><mstts:leadingsilence-exact value='0'/>${htmlEncode(
+  //   text
+  // )}</mstts:ttsembedding></voice></speak>`;
 
   isSpeaking = true;
-  avatarSynthesizer
-    .speakSsmlAsync(ssml)
-    .then(result => {
-      if (result.reason === sdk.ResultReason.SynthesizingAudioCompleted) {
-        console.log(
-          `Speech synthesized to speaker for text [ ${text} ]. Result ID: ${result.resultId}`
-        );
-        onSpeaking(text + " ");
-      } else {
-        console.log(
-          `Error occurred while speaking the SSML. Result ID: ${result.resultId}`
-        );
-      }
+  onSpeaking(text + " ");
 
-      if (spokenTextQueue.length > 0) {
-        speakNext(
-          spokenTextQueue.shift()!,
-          isSpeaking,
-          avatarSynthesizer,
-          spokenTextQueue,
-          onSpeaking
-        );
-      } else {
-        isSpeaking = false;
-      }
-    })
-    .catch(error => {
-      console.log(`Error occurred while speaking the SSML: [ ${error} ]`);
+  if (spokenTextQueue.length > 0) {
+    speakNext(
+      spokenTextQueue.shift()!,
+      isSpeaking,
+      spokenTextQueue,
+      onSpeaking
+    );
+  } else {
+    isSpeaking = false;
+  }
+  // avatarSynthesizer
+  //   .speakSsmlAsync(ssml)
+  //   .then(result => {
+  //     if (result.reason === sdk.ResultReason.SynthesizingAudioCompleted) {
+  //       console.log(
+  //         `Speech synthesized to speaker for text [ ${text} ]. Result ID: ${result.resultId}`
+  //       );
+  //       onSpeaking(text + " ");
+  //     } else {
+  //       console.log(
+  //         `Error occurred while speaking the SSML. Result ID: ${result.resultId}`
+  //       );
+  //     }
 
-      if (spokenTextQueue.length > 0) {
-        speakNext(
-          spokenTextQueue.shift()!,
-          isSpeaking,
-          avatarSynthesizer,
-          spokenTextQueue,
-          onSpeaking
-        );
-      } else {
-        isSpeaking = false;
-      }
-    });
+  //     if (spokenTextQueue.length > 0) {
+  //       speakNext(
+  //         spokenTextQueue.shift()!,
+  //         isSpeaking,
+  //         spokenTextQueue,
+  //         onSpeaking
+  //       );
+  //     } else {
+  //       isSpeaking = false;
+  //     }
+  //   })
+  //   .catch(error => {
+  //     console.log(`Error occurred while speaking the SSML: [ ${error} ]`);
+
+  //     if (spokenTextQueue.length > 0) {
+  //       speakNext(
+  //         spokenTextQueue.shift()!,
+  //         isSpeaking,
+  //         spokenTextQueue,
+  //         onSpeaking
+  //       );
+  //     } else {
+  //       isSpeaking = false;
+  //     }
+  //   });
 };
 
 export const submitMsg = async (
   messages: IMessage[],
-  avatarSynthesizer: sdk.AvatarSynthesizer,
-  onSpeaking: (value: string) => void
+  onSpeaking: (value: string) => void,
+  onFinish: () => void
 ) => {
   const spokenTextQueue: string[] = [];
   let isSpeaking = false;
@@ -122,9 +130,6 @@ export const submitMsg = async (
     stream: true,
   });
 
-  const byodDocRegex = new RegExp(/\[doc(\d+)\]/g);
-
-  let toolContent = "";
   let assistantReply = "";
   let spokenSentence = "";
 
@@ -150,6 +155,7 @@ export const submitMsg = async (
           // Check if there is still data to read
           if (done) {
             // Stream complete
+
             return;
           }
 
@@ -188,7 +194,6 @@ export const submitMsg = async (
                       spokenSentence.trim(),
                       isSpeaking,
                       spokenTextQueue,
-                      avatarSynthesizer,
                       onSpeaking
                     );
                     spokenSentence = "";
@@ -214,7 +219,6 @@ export const submitMsg = async (
                             spokenSentence.trim(),
                             isSpeaking,
                             spokenTextQueue,
-                            avatarSynthesizer,
                             onSpeaking
                           );
                           spokenSentence = "";
@@ -240,15 +244,12 @@ export const submitMsg = async (
     })
     .then(() => {
       if (spokenSentence !== "") {
-        speak(
-          spokenSentence.trim(),
-          isSpeaking,
-          spokenTextQueue,
-          avatarSynthesizer,
-          onSpeaking
-        );
+        speak(spokenSentence.trim(), isSpeaking, spokenTextQueue, onSpeaking);
         spokenSentence = "";
       }
+    })
+    .finally(() => {
+      onFinish();
     });
 };
 

@@ -22,7 +22,7 @@ export default function Page() {
   const finishInterviewContext = useContext(FinishInterviewContext);
   // const recrodingContext = useContext(RecordingContext);
   const [isAnswering, setIsAnswering] = useState(false);
-  const [index, setIndex] = useState(1);
+  const [index, setIndex] = useState(0);
   const [question, setQuestion] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
   const [loadingSubmit, setIsLoadingSubmit] = useState(false);
@@ -40,8 +40,6 @@ export default function Page() {
   const [count, setCount] = useState(0);
   const [time, setTime] = useState(0);
 
-  const azureSubscriptionKey = "3cf9ad70a16f4a2b9383e201129b9ef0";
-  const azureServiceRegion = "eastus";
   const uuid = useRef<string>("");
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -50,36 +48,6 @@ export default function Page() {
     baseUrl: "https://jardinespocapi.azurewebsites.net",
     customapikey: "774620",
   };
-  // async function transcribeAudio(audioFile: File): Promise<string> {
-  //   return new Promise((resolve, reject) => {
-  //     const audioConfig = sdk.AudioConfig.fromWavFileInput(audioFile);
-  //     const speechConfig = sdk.SpeechConfig.fromSubscription(
-  //       azureSubscriptionKey,
-  //       azureServiceRegion
-  //     );
-
-  //     const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
-  //     recognizer.recognizeOnceAsync(result => {
-  //       if (result.reason === sdk.ResultReason.RecognizedSpeech) {
-  //         const transcription = result.text;
-  //         console.log(transcription);
-  //         resolve(transcription);
-  //       } else {
-  //         reject("failed");
-  //       }
-  //     });
-  //   });
-  // }
-
-  // const handleTranscription = async (file: File) => {
-  //   try {
-  //     const transcription = await transcribeAudio(file);
-  //     console.log("Transcription:", transcription);
-  //     return transcription;
-  //   } catch (error) {
-  //     console.error("Error transcribing audio:", error);
-  //   }
-  // };
 
   const startCamera = async () => {
     try {
@@ -110,21 +78,6 @@ export default function Page() {
   }
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        setIsLoading(true);
-        uuid.current = uuidv4();
-        const res = await fetch(
-          `${KEY.baseUrl}/ChatGPT/Start?customapikey=${KEY.customapikey}&GUIDSession=${uuid.current}`
-        );
-        const data = await res.json();
-        setQuestion(data.gptInitialResponse);
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     // init();
     startCamera();
   }, []);
@@ -263,57 +216,11 @@ export default function Page() {
   const microphoneBtn = useRef<HTMLButtonElement>(null);
   const remoteVideo = useRef<HTMLDivElement>(null);
   const speechRecognizer = useRef<sdk.SpeechRecognizer | null>(null);
-  const avatarSynthesizer = useRef<sdk.AvatarSynthesizer | null>(null);
-
-  const [sessionStarted, setSessionStarted] = useState(false);
+  const isMounted = useRef(false);
 
   useEffect(() => {
-    avatarSynthesizer.current = getAvatarSynthesizer();
     speechRecognizer.current = getSpeechRecognizer();
   }, []);
-
-  useEffect(() => {
-    if (sessionStarted) {
-      handleSubmitMessage(message);
-    }
-  }, [sessionStarted]);
-
-  const startSession = () => {
-    const xhr = new XMLHttpRequest();
-
-    xhr.open(
-      "GET",
-      `https://southeastasia.tts.speech.microsoft.com/cognitiveservices/avatar/relay/token/v1`
-    );
-    xhr.setRequestHeader(
-      "Ocp-Apim-Subscription-Key",
-      "0bd46896daad4c1a887dd833048f4d67"
-    );
-    xhr.addEventListener("readystatechange", () => {
-      if (xhr.readyState === 4) {
-        const responseData = JSON.parse(xhr.responseText);
-        const iceServerUrl = responseData.Urls[0];
-        const iceServerUsername = responseData.Username;
-        const iceServerCredential = responseData.Password;
-        setupWebRTC(
-          iceServerUrl,
-          iceServerUsername,
-          iceServerCredential,
-          remoteVideo.current!,
-          avatarSynthesizer.current!
-        );
-      }
-    });
-    xhr.send();
-
-    setSessionStarted(true);
-  };
-
-  useEffect(() => {
-    if (remoteVideo.current) {
-      // startSession();
-    }
-  }, [remoteVideo.current]);
 
   const [message, setMessage] = useState<IMessage[]>([
     {
@@ -323,20 +230,43 @@ export default function Page() {
     },
   ]);
 
+  useEffect(() => {
+    if (!isMounted.current) {
+      handleSubmitMessage(message);
+      isMounted.current = true;
+    }
+  }, []);
+
   const [contMsg, setContMsg] = useState("");
   const [contMsgAI, setContMsgAI] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   const handleSubmitMessage = (message: IMessage[]) => {
+    setIsSpeaking(true);
     submitMsg(
       message,
-      avatarSynthesizer.current!,
-      value => setContMsgAI(prev => prev + value)
+      value => setContMsgAI(prev => prev + value),
+      () => {
+        setIsSpeaking(false);
+      }
       // messages => {
       //   setMessage([...messages]);
       // }
     );
   };
+
+  useEffect(() => {
+    if (!!contMsgAI && !isSpeaking) {
+      let assistantMessage: IMessage = {
+        role: "assistant",
+        content: contMsgAI,
+      };
+      setMessage([...message, assistantMessage]);
+      setQuestion(contMsgAI);
+      setIndex(prev => prev + 1);
+      setContMsgAI("");
+    }
+  }, [isSpeaking]);
 
   const handleMessage = (
     content: string,
@@ -367,14 +297,14 @@ export default function Page() {
   const handleMicrophone = () => {
     if (!!contMsgAI) {
       // push assistant message to history chat
-      let assistantMessage: IMessage = {
-        role: "assistant",
-        content: contMsgAI,
-      };
-      setMessage([...message, assistantMessage]);
+      // let assistantMessage: IMessage = {
+      //   role: "assistant",
+      //   content: contMsgAI,
+      // };
+      // setMessage([...message, assistantMessage]);
     }
 
-    setContMsgAI("");
+    // setContMsgAI("");
 
     microphone(
       "Start Answer",
@@ -388,10 +318,6 @@ export default function Page() {
       () => handleMessage(contMsg, "user")
     );
   };
-
-  useEffect(() => {
-    startSession();
-  }, []);
 
   return (
     <div>
@@ -418,25 +344,23 @@ export default function Page() {
         <div className="flex gap-6 justify-center px-16">
           {/* Question  */}
           <div
-            id="remoteVideo"
-            ref={remoteVideo}
-            className={`rounded-[12px] overflow-hidden w-[50%] flex  h-[362px] bg-content`}
+            // id="remoteVideo"
+            // ref={remoteVideo}
+            className={`rounded-[12px] overflow-hidden w-[50%] flex h-[500px] bg-content`}
           >
-            {/* {!isAnswering && (
-              <Image
-                className="absolute -left-12 -top-12"
-                src={"/vivi.png"}
-                alt="vivi.png"
-                width={300}
-                height={800}
-              />
-            )} */}
-            {/* <div className={`${!isAnswering && "ml-[200px]"} overflow-auto`}>
+            <Image
+              // className="absolute -left-12 -top-12"
+              src={"/vivi.png"}
+              alt="vivi.png"
+              width={300}
+              height={500}
+            />
+            <div className={`overflow-auto`}>
               <p className="text-[20px] leading-[34px] text-primaryDarker font-bold">
                 {`Question ${index}`}
               </p>
-              <p className="mt-[25px]">{isLoading ? `. . .` : question}</p>
-            </div> */}
+              <p className="mt-[25px]">{question}</p>
+            </div>
           </div>
 
           {/* Video  */}
@@ -451,7 +375,7 @@ export default function Page() {
                   transform: "scaleX(-1)",
                   width: "100%",
                   objectFit: "fill",
-                  height: "362px",
+                  height: "100%",
                   margin: 0,
                 }}
                 ref={videoRef}
@@ -493,7 +417,7 @@ export default function Page() {
           </div>
         </div>
         {/* Subtitle */}
-        <div className="px-16 h-[186px]">
+        {/* <div className="px-16 h-[186px]">
           <div className="rounded-lg h-full bg-content border-[#E0E6EB] border px-6 py-3">
             <header className="flex gap-[5.33px] pb-4 border-b border-[#E0E6EB]">
               <Image src={"/cc.svg"} alt="cc" width={13} height={12} />
@@ -526,7 +450,6 @@ export default function Page() {
                   )
                 );
               })}
-              {/* AI reply typing animation */}
               {!!contMsgAI && (
                 <div key={index} className="flex gap-2 items-start">
                   <div className="size-6  rounded-full border-[1.2px] border-[#E0E6EB]">
@@ -546,7 +469,7 @@ export default function Page() {
               )}
             </main>
           </div>
-        </div>
+        </div> */}
         {/* footer */}
         <div className="mt-6 flex justify-between px-16">
           <div>
@@ -583,7 +506,7 @@ export default function Page() {
             onClick={() => {
               handleMicrophone();
             }}
-            disabled={!sessionStarted}
+            disabled={isSpeaking}
             ref={microphoneBtn}
             className="w-[203px] gap-[8.17px] disabled:bg-gray-300 text-white h-[42px] rounded-[4px] flex justify-center items-center bg-[#1870F0]"
           >

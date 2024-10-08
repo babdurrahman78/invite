@@ -16,7 +16,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       <body
         className={`${inter.className} w-screen flex justify-center items-center`}
       >
-        <div className="max-w-[1440px] basis-full max-[780px]">{children}</div>
+        <div className="max-w-[1440px] basis-full h-screen">{children}</div>
       </body>
     </html>
   );

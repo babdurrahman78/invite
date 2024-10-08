@@ -22,7 +22,7 @@ export const microphone = (
   };
 
   speechRecognizer.recognizing = () => {
-    microphoneBtn.disabled = true;
+    // microphoneBtn.disabled = true;
   };
 
   // Check if the microphone button shows the start state
@@ -47,8 +47,6 @@ export const microphone = (
   if (audioPlayer) {
     audioPlayer.play();
   }
-
-  microphoneBtn.disabled = true;
 
   // Start listening and accumulate recognized speech
   speechRecognizer.recognized = async (s, e) => {
